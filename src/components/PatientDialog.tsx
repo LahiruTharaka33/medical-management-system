@@ -54,9 +54,8 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
         try {
             await onSave(formData);
             onClose();
-        } catch (err) {
-            console.error(err);
-            setError('Failed to save patient.');
+        } catch (err: any) {
+            setError(err.message || 'Failed to save patient.');
         } finally {
             setLoading(false);
         }
@@ -96,7 +95,8 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
                             required
                             value={formData.nic}
                             onChange={handleChange}
-                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                            disabled={!!patient}
+                            className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white ${patient ? 'opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''}`}
                             placeholder="National Identity Card"
                         />
                     </div>
@@ -162,8 +162,7 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
                         <textarea
                             name="address"
                             rows={2}
-                            required
-                            value={formData.address}
+                            value={formData.address || ''}
                             onChange={handleChange}
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                         />
@@ -174,8 +173,7 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
                         <input
                             type="text"
                             name="occupation"
-                            required
-                            value={formData.occupation}
+                            value={formData.occupation || ''}
                             onChange={handleChange}
                             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                         />

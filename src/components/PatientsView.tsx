@@ -118,6 +118,7 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                                     <th className="px-6 py-4 font-medium">Name</th>
                                     <th className="px-6 py-4 font-medium">Age</th>
                                     <th className="px-6 py-4 font-medium">Gender</th>
+                                    <th className="px-6 py-4 font-medium">Address</th>
                                     <th className="px-6 py-4 font-medium">Occupation</th>
                                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                                 </tr>
@@ -125,7 +126,7 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {patients.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                                        <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
                                             No patients registered yet.
                                         </td>
                                     </tr>
@@ -138,7 +139,8 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                                             </td>
                                             <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{patient.age}</td>
                                             <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{patient.gender}</td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{patient.occupation}</td>
+                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400 truncate max-w-xs" title={patient.address || ''}>{patient.address || '-'}</td>
+                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{patient.occupation || '-'}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button

@@ -12,8 +12,8 @@ export type PatientData = {
     lastName: string
     age: number
     gender: string
-    address: string
-    occupation: string
+    address?: string | null
+    occupation?: string | null
 }
 
 export async function getPatients() {
@@ -43,7 +43,10 @@ export async function createPatient(data: PatientData) {
         })
         revalidatePath('/patients')
         return { success: true, data: patient }
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return { success: false, error: 'This patient is already exist' }
+        }
         console.error('Error creating patient:', error)
         return { success: false, error: 'Failed to create patient' }
     }
@@ -66,7 +69,10 @@ export async function updatePatient(data: PatientData) {
         })
         revalidatePath('/patients')
         return { success: true, data: patient }
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return { success: false, error: 'This patient is already exist' }
+        }
         console.error('Error updating patient:', error)
         return { success: false, error: 'Failed to update patient' }
     }
