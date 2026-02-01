@@ -9,12 +9,16 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       const isHome = nextUrl.pathname === '/';
-      if (isOnDashboard || isHome) {
+      const isOnPatients = nextUrl.pathname.startsWith('/patients');
+      const isOnSettings = nextUrl.pathname.startsWith('/settings');
+
+      if (isOnDashboard || isHome || isOnPatients || isOnSettings) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {
-        if (nextUrl.pathname.startsWith('/signup')) return true;
-        return Response.redirect(new URL('/dashboard', nextUrl));
+        if (nextUrl.pathname.startsWith('/signup') || nextUrl.pathname.startsWith('/login')) {
+          return Response.redirect(new URL('/', nextUrl));
+        }
       }
       return true;
     },
