@@ -10,13 +10,13 @@ export const authConfig = {
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       const isOnAdmin = nextUrl.pathname.startsWith('/admin');
       const isHome = nextUrl.pathname === '/';
-      
-      if (isOnDashboard || isOnAdmin || isHome) {
+      if (isOnDashboard || isHome) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       } else if (isLoggedIn) {
-        if (nextUrl.pathname.startsWith('/signup')) return true;
-        return Response.redirect(new URL('/dashboard', nextUrl));
+        if (nextUrl.pathname.startsWith('/signup') || nextUrl.pathname.startsWith('/login')) {
+          return Response.redirect(new URL('/', nextUrl));
+        }
       }
       return true;
     },
