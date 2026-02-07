@@ -16,7 +16,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
 
   const searchParams = useSearchParams();
   const callbackUrl =
-    searchParams.get("callbackUrl") || redirectTo || "/dashboard";
+    searchParams.get("callbackUrl") || redirectTo || "/";
 
   return (
     <form action={formAction} className="space-y-5">
@@ -98,6 +98,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       </div>
 
       <input type="hidden" name="redirectTo" value={callbackUrl} />
+      <input type="hidden" name="role" value={redirectTo?.includes("admin") ? "ADMIN" : "USER"} />
 
       {/* Submit Button */}
       <Button className="mt-6 w-full" aria-disabled={isPending}>

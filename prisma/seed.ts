@@ -7,11 +7,14 @@ async function main() {
   const password = await bcrypt.hash('Password', 10);
   const user = await prisma.user.upsert({
     where: { email: 'donl.dl1997@gmail.com' },
-    update: {},
+    update: {
+      role: 'USER',
+    },
     create: {
       email: 'donl.dl1997@gmail.com',
       name: 'User',
       password,
+      role: 'USER',
     },
   });
   console.log({ user });
@@ -19,11 +22,14 @@ async function main() {
   const adminPassword = await bcrypt.hash('Password', 10);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@med' },
-    update: {},
+    update: {
+      role: 'ADMIN',
+    },
     create: {
       email: 'admin@med',
       name: 'Admin User',
       password: adminPassword,
+      role: 'ADMIN',
     },
   });
   console.log({ admin });

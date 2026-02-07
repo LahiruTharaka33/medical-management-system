@@ -5,11 +5,13 @@ export type User = {
   name: string;
   email: string;
   password: string;
+  role: string | null;
 };
 
 export const LoginFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(1, { message: 'Password field must not be empty.' }),
+  role: z.string().optional(),
 });
 
 export const SignupFormSchema = z.object({

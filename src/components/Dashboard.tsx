@@ -24,6 +24,12 @@ const ArrowUpIcon = () => (
 const MoreHorizontalIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" /></svg>
 );
+const LogOutIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
+);
+
+import { handleSignOut } from '@/actions/auth';
+
 
 const Dashboard = () => {
     return (
@@ -59,7 +65,14 @@ const Dashboard = () => {
                         <BellIcon />
                         <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
                     </button>
+
+                    <form action={handleSignOut}>
+                        <button type="submit" className="relative rounded-full bg-slate-100 p-2.5 text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700" title="Sign Out">
+                            <LogOutIcon />
+                        </button>
+                    </form>
                 </div>
+
             </header>
 
             <main className="p-8">
