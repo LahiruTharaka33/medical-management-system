@@ -8,11 +8,23 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
-  role     String @default("USER") // 'USER' or 'ADMIN'
+  id            String       @id @default(uuid())
+  name          String
+  email         String       @unique
+  password      String
+  role          String       @default("USER") // 'USER' or 'ADMIN'
+  accessGroupId String?
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+}
+
+model AccessGroup {
+  id          String   @id @default(uuid())
+  groupId     String   @unique
+  groupName   String
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Patient {
