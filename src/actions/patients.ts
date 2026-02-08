@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { auth } from '@/auth'
 
 const prisma = new PrismaClient()
 
@@ -16,9 +17,52 @@ export type PatientData = {
     occupation?: string | null
 }
 
+async function getCurrentUser() {
+    const session = await auth()
+    if (!session?.user?.email) {
+        throw new Error('Not authenticated')
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: {
+            id: true,
+            accessGroupId: true,
+        },
+    })
+
+    if (!user) {
+        throw new Error('User not found')
+    }
+
+    return user
+}
+
 export async function getPatients() {
     try {
+        const user = await getCurrentUser()
+
+        let whereClause: any = { createdById: user.id }
+
+        if (user.accessGroupId) {
+            // Get all user IDs in the same access group
+            const groupUsers = await prisma.user.findMany({
+                where: { accessGroupId: user.accessGroupId },
+                select: { id: true }
+            })
+            const groupUserIds = groupUsers.map(u => u.id)
+
+            // Show patients that belong to the access group OR created by any user in the group
+            whereClause = {
+                OR: [
+                    { accessGroupId: user.accessGroupId },
+                    { createdById: { in: groupUserIds } }
+                ]
+            }
+        }
+
         const patients = await prisma.patient.findMany({
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
         })
         return { success: true, data: patients }
@@ -30,6 +74,8 @@ export async function getPatients() {
 
 export async function createPatient(data: PatientData) {
     try {
+        const user = await getCurrentUser()
+
         const patient = await prisma.patient.create({
             data: {
                 nic: data.nic,
@@ -39,6 +85,8 @@ export async function createPatient(data: PatientData) {
                 gender: data.gender,
                 address: data.address,
                 occupation: data.occupation,
+                accessGroupId: user.accessGroupId || null,
+                createdById: user.id,
             },
         })
         revalidatePath('/patients')
@@ -55,6 +103,26 @@ export async function createPatient(data: PatientData) {
 export async function updatePatient(data: PatientData) {
     if (!data.id) return { success: false, error: 'Patient ID is required' }
     try {
+        const user = await getCurrentUser()
+
+        // Verify user has access to this patient
+        const existingPatient = await prisma.patient.findUnique({
+            where: { id: data.id },
+        })
+
+        if (!existingPatient) {
+            return { success: false, error: 'Patient not found' }
+        }
+
+        // Check access: either same access group or created by this user
+        const hasAccess = user.accessGroupId
+            ? existingPatient.accessGroupId === user.accessGroupId
+            : existingPatient.createdById === user.id
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to edit this patient' }
+        }
+
         const patient = await prisma.patient.update({
             where: { id: data.id },
             data: {
@@ -80,6 +148,26 @@ export async function updatePatient(data: PatientData) {
 
 export async function deletePatient(id: string) {
     try {
+        const user = await getCurrentUser()
+
+        // Verify user has access to this patient
+        const existingPatient = await prisma.patient.findUnique({
+            where: { id },
+        })
+
+        if (!existingPatient) {
+            return { success: false, error: 'Patient not found' }
+        }
+
+        // Check access: either same access group or created by this user
+        const hasAccess = user.accessGroupId
+            ? existingPatient.accessGroupId === user.accessGroupId
+            : existingPatient.createdById === user.id
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to delete this patient' }
+        }
+
         await prisma.patient.delete({
             where: { id },
         })

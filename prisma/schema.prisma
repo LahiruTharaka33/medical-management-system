@@ -15,27 +15,33 @@ model User {
   role          String       @default("USER") // 'USER' or 'ADMIN'
   accessGroupId String?
   accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+  patients      Patient[]    @relation("CreatedPatients")
 }
 
 model AccessGroup {
-  id          String   @id @default(uuid())
-  groupId     String   @unique
+  id          String    @id @default(uuid())
+  groupId     String    @unique
   groupName   String
   description String?
   users       User[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  patients    Patient[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Patient {
-  id          String   @id @default(uuid())
-  nic         String   @unique
-  firstName   String
-  lastName    String
-  age         Int
-  gender      String
-  address     String?
-  occupation  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String       @id @default(uuid())
+  nic           String       @unique
+  firstName     String
+  lastName      String
+  age           Int
+  gender        String
+  address       String?
+  occupation    String?
+  accessGroupId String?
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+  createdById   String
+  createdBy     User         @relation("CreatedPatients", fields: [createdById], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
