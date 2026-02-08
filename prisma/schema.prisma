@@ -43,5 +43,20 @@ model Patient {
   createdById   String
   createdBy     User         @relation("CreatedPatients", fields: [createdById], references: [id])
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  updatedAt     DateTime     @updatedAt  
+  vitalSigns    VitalSigns[]
+}
+
+model VitalSigns {
+  id               String   @id @default(uuid())
+  patientId        String
+  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  systolicBP       Int?     // mmHg
+  diastolicBP      Int?     // mmHg
+  heartRate        Int?     // bpm
+  respiratoryRate  Int?     // bpm
+  temperature      Float?   // Celsius
+  oxygenSaturation Int?     // %
+  recordedById     String
+  recordedAt       DateTime @default(now())
 }

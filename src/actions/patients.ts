@@ -178,3 +178,51 @@ export async function deletePatient(id: string) {
         return { success: false, error: 'Failed to delete patient' }
     }
 }
+
+export async function getPatientById(id: string) {
+    try {
+        const user = await getCurrentUser()
+
+        const patient = await prisma.patient.findUnique({
+            where: { id },
+        })
+
+        if (!patient) {
+            return { success: false, error: 'Patient not found' }
+        }
+
+        let hasAccess = false
+
+        if (user.accessGroupId) {
+            // User is in a group
+            // Access if patient belongs to group
+            if (patient.accessGroupId === user.accessGroupId) {
+                hasAccess = true
+            } else {
+                // OR if patient is personal record of a current group member
+                const creator = await prisma.user.findUnique({
+                    where: { id: patient.createdById },
+                    select: { accessGroupId: true }
+                })
+                if (creator && creator.accessGroupId === user.accessGroupId) {
+                    hasAccess = true;
+                }
+            }
+        } else {
+            // User is not in a group - only access their own patients
+            if (patient.createdById === user.id) {
+                hasAccess = true
+            }
+        }
+
+        if (!hasAccess) {
+            return { success: false, error: 'You do not have permission to view this patient' }
+        }
+
+        // Add creator info to response if needed, for now just patient data
+        return { success: true, data: patient }
+    } catch (error) {
+        console.error('Error fetching patient:', error)
+        return { success: false, error: 'Failed to fetch patient' }
+    }
+}
