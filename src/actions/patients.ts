@@ -42,27 +42,12 @@ export async function getPatients() {
     try {
         const user = await getCurrentUser()
 
-        let whereClause: any = { createdById: user.id }
-
-        if (user.accessGroupId) {
-            // Get all user IDs in the same access group
-            const groupUsers = await prisma.user.findMany({
-                where: { accessGroupId: user.accessGroupId },
-                select: { id: true }
-            })
-            const groupUserIds = groupUsers.map(u => u.id)
-
-            // Show patients that belong to the access group OR created by any user in the group
-            whereClause = {
-                OR: [
-                    { accessGroupId: user.accessGroupId },
-                    { createdById: { in: groupUserIds } }
-                ]
-            }
+        if (!user.accessGroupId) {
+            return { success: true, data: [] }
         }
 
         const patients = await prisma.patient.findMany({
-            where: whereClause,
+            where: { accessGroupId: user.accessGroupId },
             orderBy: { createdAt: 'desc' },
         })
         return { success: true, data: patients }
@@ -76,6 +61,10 @@ export async function createPatient(data: PatientData) {
     try {
         const user = await getCurrentUser()
 
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You must belong to an Access Group to create a patient.' }
+        }
+
         const patient = await prisma.patient.create({
             data: {
                 nic: data.nic,
@@ -85,7 +74,7 @@ export async function createPatient(data: PatientData) {
                 gender: data.gender,
                 address: data.address,
                 occupation: data.occupation,
-                accessGroupId: user.accessGroupId || null,
+                accessGroupId: user.accessGroupId,
                 createdById: user.id,
             },
         })
@@ -105,6 +94,10 @@ export async function updatePatient(data: PatientData) {
     try {
         const user = await getCurrentUser()
 
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to edit patients.' }
+        }
+
         // Verify user has access to this patient
         const existingPatient = await prisma.patient.findUnique({
             where: { id: data.id },
@@ -114,12 +107,8 @@ export async function updatePatient(data: PatientData) {
             return { success: false, error: 'Patient not found' }
         }
 
-        // Check access: either same access group or created by this user
-        const hasAccess = user.accessGroupId
-            ? existingPatient.accessGroupId === user.accessGroupId
-            : existingPatient.createdById === user.id
-
-        if (!hasAccess) {
+        // Check access: strict access group match
+        if (existingPatient.accessGroupId !== user.accessGroupId) {
             return { success: false, error: 'You do not have permission to edit this patient' }
         }
 
@@ -150,6 +139,10 @@ export async function deletePatient(id: string) {
     try {
         const user = await getCurrentUser()
 
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to delete patients.' }
+        }
+
         // Verify user has access to this patient
         const existingPatient = await prisma.patient.findUnique({
             where: { id },
@@ -159,12 +152,8 @@ export async function deletePatient(id: string) {
             return { success: false, error: 'Patient not found' }
         }
 
-        // Check access: either same access group or created by this user
-        const hasAccess = user.accessGroupId
-            ? existingPatient.accessGroupId === user.accessGroupId
-            : existingPatient.createdById === user.id
-
-        if (!hasAccess) {
+        // Check access: strict access group match
+        if (existingPatient.accessGroupId !== user.accessGroupId) {
             return { success: false, error: 'You do not have permission to delete this patient' }
         }
 
@@ -183,6 +172,10 @@ export async function getPatientById(id: string) {
     try {
         const user = await getCurrentUser()
 
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to view patients.' }
+        }
+
         const patient = await prisma.patient.findUnique({
             where: { id },
         })
@@ -191,31 +184,8 @@ export async function getPatientById(id: string) {
             return { success: false, error: 'Patient not found' }
         }
 
-        let hasAccess = false
-
-        if (user.accessGroupId) {
-            // User is in a group
-            // Access if patient belongs to group
-            if (patient.accessGroupId === user.accessGroupId) {
-                hasAccess = true
-            } else {
-                // OR if patient is personal record of a current group member
-                const creator = await prisma.user.findUnique({
-                    where: { id: patient.createdById },
-                    select: { accessGroupId: true }
-                })
-                if (creator && creator.accessGroupId === user.accessGroupId) {
-                    hasAccess = true;
-                }
-            }
-        } else {
-            // User is not in a group - only access their own patients
-            if (patient.createdById === user.id) {
-                hasAccess = true
-            }
-        }
-
-        if (!hasAccess) {
+        // Strict Access Group Check
+        if (patient.accessGroupId !== user.accessGroupId) {
             return { success: false, error: 'You do not have permission to view this patient' }
         }
 
