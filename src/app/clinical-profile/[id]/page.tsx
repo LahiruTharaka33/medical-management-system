@@ -1,13 +1,12 @@
 import React from 'react';
 import Sidebar from "@/components/Sidebar";
 import { getPatientById } from "@/actions/patients";
-import { getLatestVitalSigns } from "@/actions/vitalSigns";
 import { notFound, redirect } from "next/navigation";
 import Link from 'next/link';
 
 // Component Imports
 import PatientProfileHeader from '@/components/PatientProfileHeader';
-import VitalSignsSection from '@/components/VitalSignsSection';
+import ChronicIllnessForm from '@/components/ChronicIllnessForm';
 
 const ChevronLeftIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -18,10 +17,7 @@ export const dynamic = 'force-dynamic';
 export default async function ClinicalProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
-    const [patientResult, vitalsResult] = await Promise.all([
-        getPatientById(id),
-        getLatestVitalSigns(id)
-    ]);
+    const patientResult = await getPatientById(id);
 
     if (!patientResult.success || !patientResult.data) {
         return (
@@ -38,11 +34,6 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
     }
 
     const patient = patientResult.data;
-    // Serialize date for client component
-    const initialVitals = vitalsResult.success && vitalsResult.data ? {
-        ...vitalsResult.data,
-        recordedAt: vitalsResult.data.recordedAt.toISOString()
-    } : null;
 
     return (
         <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -65,17 +56,25 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                         <PatientProfileHeader patient={patient as any} />
                     </div>
 
-                    {/* Vitals Section */}
-                    <div className="fade-in-up delay-100">
-                        <VitalSignsSection patientId={patient.id} initialVitals={initialVitals} />
-                    </div>
-
-                    {/* Content Placeholder */}
+                    {/* Content Area */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column - Main History */}
                         <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6 h-96 flex items-center justify-center text-slate-400">
-                                History Content Coming Soon...
+                            {/* Chronic Illness Section */}
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">
+                                <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Chronic Illness</h2>
+                                
+                                {/* Chronic Illness Forms */}
+                                <ChronicIllnessForm 
+                                    patientId={patient.id} 
+                                    initialFbs={(patient as any).chronicIllnessProfile?.fbs || null} 
+                                    initialHba1c={(patient as any).chronicIllnessProfile?.hba1c || null} 
+                                    initialBloodPressure={(patient as any).chronicIllnessProfile?.bloodPressure || null}
+                                    initialTotalCholesterol={(patient as any).chronicIllnessProfile?.totalCholesterol || null}
+                                    initialTriglycerides={(patient as any).chronicIllnessProfile?.triglycerides || null}
+                                    initialHdl={(patient as any).chronicIllnessProfile?.hdl || null}
+                                    initialLdl={(patient as any).chronicIllnessProfile?.ldl || null}
+                                />
                             </div>
                         </div>
 

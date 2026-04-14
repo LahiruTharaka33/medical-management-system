@@ -44,19 +44,19 @@ model Patient {
   createdBy     User         @relation("CreatedPatients", fields: [createdById], references: [id])
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt  
-  vitalSigns    VitalSigns[]
+  chronicIllnessProfile ChronicIllnessProfile?
 }
 
-model VitalSigns {
-  id               String   @id @default(uuid())
-  patientId        String
-  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  systolicBP       Int?     // mmHg
-  diastolicBP      Int?     // mmHg
-  heartRate        Int?     // bpm
-  respiratoryRate  Int?     // bpm
-  temperature      Float?   // Celsius
-  oxygenSaturation Int?     // %
-  recordedById     String
-  recordedAt       DateTime @default(now())
+model ChronicIllnessProfile {
+  id        String   @id @default(uuid())
+  patientId String   @unique
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  fbs       Float?   // Fasting Blood Sugar in mg/dL
+  hba1c         Float?   // HbA1c in percentage
+  bloodPressure    String?  // HTN - Blood Pressure (e.g. 120/80)
+  totalCholesterol Float?   // Dyslipidemia - Total Cholesterol in mg/dL
+  triglycerides    Float?   // Dyslipidemia - Triglycerides in mg/dL
+  hdl              Float?   // Dyslipidemia - HDL in mg/dL
+  ldl              Float?   // Dyslipidemia - LDL in mg/dL
+  updatedAt DateTime @updatedAt
 }

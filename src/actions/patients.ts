@@ -178,6 +178,7 @@ export async function getPatientById(id: string) {
 
         const patient = await prisma.patient.findUnique({
             where: { id },
+            include: { chronicIllnessProfile: true },
         })
 
         if (!patient) {
@@ -194,5 +195,59 @@ export async function getPatientById(id: string) {
     } catch (error) {
         console.error('Error fetching patient:', error)
         return { success: false, error: 'Failed to fetch patient' }
+    }
+}
+
+export async function saveChronicIllnesses(patientId: string, data: { 
+    fbs: number | null, 
+    hba1c: number | null, 
+    bloodPressure: string | null,
+    totalCholesterol: number | null,
+    triglycerides: number | null,
+    hdl: number | null,
+    ldl: number | null,
+}) {
+    try {
+        const user = await getCurrentUser()
+
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to edit patients.' }
+        }
+
+        const existingPatient = await prisma.patient.findUnique({
+            where: { id: patientId },
+        })
+
+        if (!existingPatient || existingPatient.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to edit this patient' }
+        }
+
+        const profile = await prisma.chronicIllnessProfile.upsert({
+            where: { patientId },
+            update: {
+                fbs: data.fbs,
+                hba1c: data.hba1c,
+                bloodPressure: data.bloodPressure,
+                totalCholesterol: data.totalCholesterol,
+                triglycerides: data.triglycerides,
+                hdl: data.hdl,
+                ldl: data.ldl,
+            },
+            create: {
+                patientId,
+                fbs: data.fbs,
+                hba1c: data.hba1c,
+                bloodPressure: data.bloodPressure,
+                totalCholesterol: data.totalCholesterol,
+                triglycerides: data.triglycerides,
+                hdl: data.hdl,
+                ldl: data.ldl,
+            }
+        })
+        revalidatePath(`/clinical-profile/${patientId}`)
+        return { success: true, data: profile }
+    } catch (error) {
+        console.error('Error saving diabetes profile:', error)
+        return { success: false, error: 'Failed to save diabetes profile' }
     }
 }
