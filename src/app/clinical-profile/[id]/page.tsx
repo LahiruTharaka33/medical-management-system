@@ -74,6 +74,9 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                                     initialTriglycerides={(patient as any).chronicIllnessProfile?.triglycerides || null}
                                     initialHdl={(patient as any).chronicIllnessProfile?.hdl || null}
                                     initialLdl={(patient as any).chronicIllnessProfile?.ldl || null}
+                                    diabetesUpdatedAt={(patient as any).chronicIllnessProfile?.diabetesUpdatedAt || null}
+                                    htnUpdatedAt={(patient as any).chronicIllnessProfile?.htnUpdatedAt || null}
+                                    dyslipidemiaUpdatedAt={(patient as any).chronicIllnessProfile?.dyslipidemiaUpdatedAt || null}
                                 />
                             </div>
                         </div>

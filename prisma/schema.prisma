@@ -58,5 +58,8 @@ model ChronicIllnessProfile {
   triglycerides    Float?   // Dyslipidemia - Triglycerides in mg/dL
   hdl              Float?   // Dyslipidemia - HDL in mg/dL
   ldl              Float?   // Dyslipidemia - LDL in mg/dL
+  diabetesUpdatedAt DateTime?
+  htnUpdatedAt      DateTime?
+  dyslipidemiaUpdatedAt DateTime?
   updatedAt DateTime @updatedAt
 }

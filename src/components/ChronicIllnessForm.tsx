@@ -12,7 +12,10 @@ export default function ChronicIllnessForm({
     initialTotalCholesterol,
     initialTriglycerides,
     initialHdl,
-    initialLdl
+    initialLdl,
+    diabetesUpdatedAt,
+    htnUpdatedAt,
+    dyslipidemiaUpdatedAt
 }: { 
     patientId: string, 
     initialFbs: number | null, 
@@ -21,7 +24,10 @@ export default function ChronicIllnessForm({
     initialTotalCholesterol: number | null,
     initialTriglycerides: number | null,
     initialHdl: number | null,
-    initialLdl: number | null
+    initialLdl: number | null,
+    diabetesUpdatedAt: Date | null,
+    htnUpdatedAt: Date | null,
+    dyslipidemiaUpdatedAt: Date | null
 }) {
     const [fbs, setFbs] = useState(initialFbs ? String(initialFbs) : '')
     const [hba1c, setHba1c] = useState(initialHba1c ? String(initialHba1c) : '')
@@ -98,7 +104,14 @@ export default function ChronicIllnessForm({
         <form onSubmit={handleSave} className="relative space-y-6">
             {/* Diabetes Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">Diabetes</h3>
+                <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Diabetes</h3>
+                    {diabetesUpdatedAt && (
+                        <span className="text-slate-500 dark:text-slate-400 text-xs">
+                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(diabetesUpdatedAt))}
+                        </span>
+                    )}
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Fasting Blood Sugar */}
@@ -147,7 +160,14 @@ export default function ChronicIllnessForm({
 
             {/* HTN Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">HTN - Blood Pressure</h3>
+                <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">HTN - Blood Pressure</h3>
+                    {htnUpdatedAt && (
+                        <span className="text-slate-500 dark:text-slate-400 text-xs">
+                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(htnUpdatedAt))}
+                        </span>
+                    )}
+                </div>
                 
                 <div className="grid grid-cols-1 gap-6">
                     {/* Blood Pressure */}
@@ -175,7 +195,14 @@ export default function ChronicIllnessForm({
 
             {/* Dyslipidemia Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">Dyslipidemia - Cholesterol</h3>
+                <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Dyslipidemia - Cholesterol</h3>
+                    {dyslipidemiaUpdatedAt && (
+                        <span className="text-slate-500 dark:text-slate-400 text-xs">
+                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dyslipidemiaUpdatedAt))}
+                        </span>
+                    )}
+                </div>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Total Cholesterol */}
@@ -267,8 +294,8 @@ export default function ChronicIllnessForm({
             {/* Form Actions */}
             <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
                 <div className="text-sm">
-                    {message && <span className="text-teal-600 dark:text-teal-400 font-medium">{message}</span>}
-                    {error && <span className="text-rose-600 dark:text-rose-400 font-medium">{error}</span>}
+                    {message && <span className="text-teal-600 dark:text-teal-400 font-medium mr-4">{message}</span>}
+                    {error && <span className="text-rose-600 dark:text-rose-400 font-medium mr-4">{error}</span>}
                 </div>
                 <button
                     type="submit"

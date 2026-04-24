@@ -222,6 +222,16 @@ export async function saveChronicIllnesses(patientId: string, data: {
             return { success: false, error: 'You do not have permission to edit this patient' }
         }
 
+        const existingProfile = await prisma.chronicIllnessProfile.findUnique({
+            where: { patientId },
+        })
+
+        const now = new Date()
+
+        const diabetesChanged = !existingProfile || existingProfile.fbs !== data.fbs || existingProfile.hba1c !== data.hba1c
+        const htnChanged = !existingProfile || existingProfile.bloodPressure !== data.bloodPressure
+        const dyslipidemiaChanged = !existingProfile || existingProfile.totalCholesterol !== data.totalCholesterol || existingProfile.triglycerides !== data.triglycerides || existingProfile.hdl !== data.hdl || existingProfile.ldl !== data.ldl
+
         const profile = await prisma.chronicIllnessProfile.upsert({
             where: { patientId },
             update: {
@@ -232,6 +242,9 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 triglycerides: data.triglycerides,
                 hdl: data.hdl,
                 ldl: data.ldl,
+                diabetesUpdatedAt: diabetesChanged ? now : existingProfile?.diabetesUpdatedAt,
+                htnUpdatedAt: htnChanged ? now : existingProfile?.htnUpdatedAt,
+                dyslipidemiaUpdatedAt: dyslipidemiaChanged ? now : existingProfile?.dyslipidemiaUpdatedAt,
             },
             create: {
                 patientId,
@@ -242,6 +255,9 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 triglycerides: data.triglycerides,
                 hdl: data.hdl,
                 ldl: data.ldl,
+                diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null) ? now : null,
+                htnUpdatedAt: (data.bloodPressure && data.bloodPressure.trim() !== '') ? now : null,
+                dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null) ? now : null,
             }
         })
         revalidatePath(`/clinical-profile/${patientId}`)
