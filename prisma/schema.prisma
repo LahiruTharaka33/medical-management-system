@@ -72,5 +72,7 @@ model ChronicIllnessProfile {
   diabetesUpdatedAt DateTime?
   htnUpdatedAt      DateTime?
   dyslipidemiaUpdatedAt DateTime?
+  dietAndLifestyleText  String?
+  dietAndLifestyleUpdatedAt DateTime?
   updatedAt DateTime @updatedAt
 }

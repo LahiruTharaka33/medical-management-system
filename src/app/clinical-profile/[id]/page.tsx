@@ -85,9 +85,11 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                                     initialDyslipidemiaOnSet={(patient as any).chronicIllnessProfile?.dyslipidemiaOnSet || null}
                                     initialDyslipidemiaIsOnDrugs={(patient as any).chronicIllnessProfile?.dyslipidemiaIsOnDrugs || false}
                                     initialDyslipidemiaDrugsText={(patient as any).chronicIllnessProfile?.dyslipidemiaDrugsText || null}
+                                    initialDietAndLifestyleText={(patient as any).chronicIllnessProfile?.dietAndLifestyleText || null}
                                     diabetesUpdatedAt={(patient as any).chronicIllnessProfile?.diabetesUpdatedAt || null}
                                     htnUpdatedAt={(patient as any).chronicIllnessProfile?.htnUpdatedAt || null}
                                     dyslipidemiaUpdatedAt={(patient as any).chronicIllnessProfile?.dyslipidemiaUpdatedAt || null}
+                                    dietAndLifestyleUpdatedAt={(patient as any).chronicIllnessProfile?.dietAndLifestyleUpdatedAt || null}
                                 />
                             </div>
                         </div>

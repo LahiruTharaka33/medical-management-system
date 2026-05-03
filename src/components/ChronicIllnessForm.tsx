@@ -24,9 +24,11 @@ export default function ChronicIllnessForm({
     initialDyslipidemiaOnSet,
     initialDyslipidemiaIsOnDrugs,
     initialDyslipidemiaDrugsText,
+    initialDietAndLifestyleText,
     diabetesUpdatedAt,
     htnUpdatedAt,
-    dyslipidemiaUpdatedAt
+    dyslipidemiaUpdatedAt,
+    dietAndLifestyleUpdatedAt
 }: { 
     patientId: string, 
     initialFbs: number | null, 
@@ -47,9 +49,11 @@ export default function ChronicIllnessForm({
     initialDyslipidemiaOnSet: string | null,
     initialDyslipidemiaIsOnDrugs: boolean,
     initialDyslipidemiaDrugsText: string | null,
+    initialDietAndLifestyleText: string | null,
     diabetesUpdatedAt: Date | null,
     htnUpdatedAt: Date | null,
-    dyslipidemiaUpdatedAt: Date | null
+    dyslipidemiaUpdatedAt: Date | null,
+    dietAndLifestyleUpdatedAt: Date | null
 }) {
     const [fbs, setFbs] = useState(initialFbs ? String(initialFbs) : '')
     const [hba1c, setHba1c] = useState(initialHba1c ? String(initialHba1c) : '')
@@ -99,11 +103,15 @@ export default function ChronicIllnessForm({
     const [dyslipidemiaDrugsText, setDyslipidemiaDrugsText] = useState(initialDyslipidemiaDrugsText || '')
     const [savedDyslipidemiaDrugsText, setSavedDyslipidemiaDrugsText] = useState(dyslipidemiaDrugsText)
 
+    const [dietAndLifestyleText, setDietAndLifestyleText] = useState(initialDietAndLifestyleText || '')
+    const [savedDietAndLifestyleText, setSavedDietAndLifestyleText] = useState(dietAndLifestyleText)
+
     const [isDiabetesEditing, setIsDiabetesEditing] = useState(false)
     const [isHtnEditing, setIsHtnEditing] = useState(false)
     const [isDyslipidemiaEditing, setIsDyslipidemiaEditing] = useState(false)
+    const [isDietAndLifestyleEditing, setIsDietAndLifestyleEditing] = useState(false)
 
-    const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText
+    const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText || dietAndLifestyleText !== savedDietAndLifestyleText
     const [isSaving, setIsSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
@@ -148,7 +156,8 @@ export default function ChronicIllnessForm({
             htnDrugsText: htnIsOnDrugs ? (htnDrugsText || null) : null,
             dyslipidemiaOnSet: dyslipidemiaOnSetValue || null,
             dyslipidemiaIsOnDrugs: dyslipidemiaIsOnDrugs,
-            dyslipidemiaDrugsText: dyslipidemiaIsOnDrugs ? (dyslipidemiaDrugsText || null) : null
+            dyslipidemiaDrugsText: dyslipidemiaIsOnDrugs ? (dyslipidemiaDrugsText || null) : null,
+            dietAndLifestyleText: dietAndLifestyleText || null
         })
 
         if (result.success) {
@@ -171,10 +180,12 @@ export default function ChronicIllnessForm({
             setSavedDyslipidemiaOnSet(dyslipidemiaOnSetValue)
             setSavedDyslipidemiaIsOnDrugs(dyslipidemiaIsOnDrugs)
             setSavedDyslipidemiaDrugsText(dyslipidemiaIsOnDrugs ? dyslipidemiaDrugsText : '')
+            setSavedDietAndLifestyleText(dietAndLifestyleText)
             
             setIsDiabetesEditing(false)
             setIsHtnEditing(false)
             setIsDyslipidemiaEditing(false)
+            setIsDietAndLifestyleEditing(false)
             
             router.refresh()
         } else {
@@ -703,6 +714,45 @@ export default function ChronicIllnessForm({
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Diet and Life Style Sub-section */}
+            <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                    <div className="flex items-center gap-6">
+                        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Diet and Life Style</h3>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsDietAndLifestyleEditing(!isDietAndLifestyleEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isDietAndLifestyleEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isDietAndLifestyleEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {dietAndLifestyleUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dietAndLifestyleUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="w-full">
+                    <textarea
+                        name="dietAndLifestyleText"
+                        id="dietAndLifestyleText"
+                        rows={4}
+                        value={dietAndLifestyleText}
+                        onChange={(e) => isDietAndLifestyleEditing && setDietAndLifestyleText(e.target.value)}
+                        readOnly={!isDietAndLifestyleEditing}
+                        className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                        placeholder="Enter diet and lifestyle recommendations..."
+                    />
                 </div>
             </div>
 
