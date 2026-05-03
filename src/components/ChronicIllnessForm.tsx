@@ -110,6 +110,7 @@ export default function ChronicIllnessForm({
     const [isHtnEditing, setIsHtnEditing] = useState(false)
     const [isDyslipidemiaEditing, setIsDyslipidemiaEditing] = useState(false)
     const [isDietAndLifestyleEditing, setIsDietAndLifestyleEditing] = useState(false)
+    const [isDietAndLifestyleExpanded, setIsDietAndLifestyleExpanded] = useState(false)
 
     const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText || dietAndLifestyleText !== savedDietAndLifestyleText
     const [isSaving, setIsSaving] = useState(false)
@@ -718,10 +719,19 @@ export default function ChronicIllnessForm({
             </div>
 
             {/* Diet and Life Style Sub-section */}
-            <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+            <div className={`border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-300`}>
+                <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${isDietAndLifestyleExpanded ? 'mb-6' : 'mb-0'}`}>
                     <div className="flex items-center gap-6">
-                        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Diet and Life Style</h3>
+                        <button 
+                            type="button" 
+                            onClick={() => setIsDietAndLifestyleExpanded(!isDietAndLifestyleExpanded)} 
+                            className="flex items-center gap-2 text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transition-transform duration-200 ${isDietAndLifestyleExpanded ? 'rotate-180' : ''}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            Diet and Life Style
+                        </button>
                     </div>
                     <div className="flex items-center gap-3">
                         <button
@@ -742,18 +752,20 @@ export default function ChronicIllnessForm({
                     </div>
                 </div>
 
-                <div className="w-full">
-                    <textarea
-                        name="dietAndLifestyleText"
-                        id="dietAndLifestyleText"
-                        rows={4}
-                        value={dietAndLifestyleText}
-                        onChange={(e) => isDietAndLifestyleEditing && setDietAndLifestyleText(e.target.value)}
-                        readOnly={!isDietAndLifestyleEditing}
-                        className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
-                        placeholder="Enter diet and lifestyle recommendations..."
-                    />
-                </div>
+                {isDietAndLifestyleExpanded && (
+                    <div className="w-full">
+                        <textarea
+                            name="dietAndLifestyleText"
+                            id="dietAndLifestyleText"
+                            rows={4}
+                            value={dietAndLifestyleText}
+                            onChange={(e) => isDietAndLifestyleEditing && setDietAndLifestyleText(e.target.value)}
+                            readOnly={!isDietAndLifestyleEditing}
+                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                            placeholder="Enter diet and lifestyle recommendations..."
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Form Actions */}
