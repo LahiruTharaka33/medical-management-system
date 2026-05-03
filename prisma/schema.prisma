@@ -58,6 +58,17 @@ model ChronicIllnessProfile {
   triglycerides    Float?   // Dyslipidemia - Triglycerides in mg/dL
   hdl              Float?   // Dyslipidemia - HDL in mg/dL
   ldl              Float?   // Dyslipidemia - LDL in mg/dL
+  diabetesOnSet    String?
+  diabetesIsOnDrugs Boolean @default(false)
+  diabetesDrugsText String?
+  diabetesSugarControl Boolean @default(false)
+  diabetesComplications String?
+  htnOnSet         String?
+  htnIsOnDrugs     Boolean @default(false)
+  htnDrugsText     String?
+  dyslipidemiaOnSet String?
+  dyslipidemiaIsOnDrugs Boolean @default(false)
+  dyslipidemiaDrugsText String?
   diabetesUpdatedAt DateTime?
   htnUpdatedAt      DateTime?
   dyslipidemiaUpdatedAt DateTime?

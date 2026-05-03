@@ -74,6 +74,17 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                                     initialTriglycerides={(patient as any).chronicIllnessProfile?.triglycerides || null}
                                     initialHdl={(patient as any).chronicIllnessProfile?.hdl || null}
                                     initialLdl={(patient as any).chronicIllnessProfile?.ldl || null}
+                                    initialDiabetesOnSet={(patient as any).chronicIllnessProfile?.diabetesOnSet || null}
+                                    initialDiabetesIsOnDrugs={(patient as any).chronicIllnessProfile?.diabetesIsOnDrugs || false}
+                                    initialDiabetesDrugsText={(patient as any).chronicIllnessProfile?.diabetesDrugsText || null}
+                                    initialDiabetesSugarControl={(patient as any).chronicIllnessProfile?.diabetesSugarControl || false}
+                                    initialDiabetesComplications={(patient as any).chronicIllnessProfile?.diabetesComplications || null}
+                                    initialHtnOnSet={(patient as any).chronicIllnessProfile?.htnOnSet || null}
+                                    initialHtnIsOnDrugs={(patient as any).chronicIllnessProfile?.htnIsOnDrugs || false}
+                                    initialHtnDrugsText={(patient as any).chronicIllnessProfile?.htnDrugsText || null}
+                                    initialDyslipidemiaOnSet={(patient as any).chronicIllnessProfile?.dyslipidemiaOnSet || null}
+                                    initialDyslipidemiaIsOnDrugs={(patient as any).chronicIllnessProfile?.dyslipidemiaIsOnDrugs || false}
+                                    initialDyslipidemiaDrugsText={(patient as any).chronicIllnessProfile?.dyslipidemiaDrugsText || null}
                                     diabetesUpdatedAt={(patient as any).chronicIllnessProfile?.diabetesUpdatedAt || null}
                                     htnUpdatedAt={(patient as any).chronicIllnessProfile?.htnUpdatedAt || null}
                                     dyslipidemiaUpdatedAt={(patient as any).chronicIllnessProfile?.dyslipidemiaUpdatedAt || null}

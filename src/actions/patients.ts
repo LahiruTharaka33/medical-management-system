@@ -206,6 +206,17 @@ export async function saveChronicIllnesses(patientId: string, data: {
     triglycerides: number | null,
     hdl: number | null,
     ldl: number | null,
+    diabetesOnSet: string | null,
+    diabetesIsOnDrugs: boolean,
+    diabetesDrugsText: string | null,
+    diabetesSugarControl: boolean,
+    diabetesComplications: string | null,
+    htnOnSet: string | null,
+    htnIsOnDrugs: boolean,
+    htnDrugsText: string | null,
+    dyslipidemiaOnSet: string | null,
+    dyslipidemiaIsOnDrugs: boolean,
+    dyslipidemiaDrugsText: string | null,
 }) {
     try {
         const user = await getCurrentUser()
@@ -228,9 +239,9 @@ export async function saveChronicIllnesses(patientId: string, data: {
 
         const now = new Date()
 
-        const diabetesChanged = !existingProfile || existingProfile.fbs !== data.fbs || existingProfile.hba1c !== data.hba1c
-        const htnChanged = !existingProfile || existingProfile.bloodPressure !== data.bloodPressure
-        const dyslipidemiaChanged = !existingProfile || existingProfile.totalCholesterol !== data.totalCholesterol || existingProfile.triglycerides !== data.triglycerides || existingProfile.hdl !== data.hdl || existingProfile.ldl !== data.ldl
+        const diabetesChanged = !existingProfile || existingProfile.fbs !== data.fbs || existingProfile.hba1c !== data.hba1c || existingProfile.diabetesOnSet !== data.diabetesOnSet || existingProfile.diabetesIsOnDrugs !== data.diabetesIsOnDrugs || existingProfile.diabetesDrugsText !== data.diabetesDrugsText || existingProfile.diabetesSugarControl !== data.diabetesSugarControl || existingProfile.diabetesComplications !== data.diabetesComplications
+        const htnChanged = !existingProfile || existingProfile.bloodPressure !== data.bloodPressure || existingProfile.htnOnSet !== data.htnOnSet || existingProfile.htnIsOnDrugs !== data.htnIsOnDrugs || existingProfile.htnDrugsText !== data.htnDrugsText
+        const dyslipidemiaChanged = !existingProfile || existingProfile.totalCholesterol !== data.totalCholesterol || existingProfile.triglycerides !== data.triglycerides || existingProfile.hdl !== data.hdl || existingProfile.ldl !== data.ldl || existingProfile.dyslipidemiaOnSet !== data.dyslipidemiaOnSet || existingProfile.dyslipidemiaIsOnDrugs !== data.dyslipidemiaIsOnDrugs || existingProfile.dyslipidemiaDrugsText !== data.dyslipidemiaDrugsText
 
         const profile = await prisma.chronicIllnessProfile.upsert({
             where: { patientId },
@@ -242,6 +253,17 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 triglycerides: data.triglycerides,
                 hdl: data.hdl,
                 ldl: data.ldl,
+                diabetesOnSet: data.diabetesOnSet,
+                diabetesIsOnDrugs: data.diabetesIsOnDrugs,
+                diabetesDrugsText: data.diabetesDrugsText,
+                diabetesSugarControl: data.diabetesSugarControl,
+                diabetesComplications: data.diabetesComplications,
+                htnOnSet: data.htnOnSet,
+                htnIsOnDrugs: data.htnIsOnDrugs,
+                htnDrugsText: data.htnDrugsText,
+                dyslipidemiaOnSet: data.dyslipidemiaOnSet,
+                dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
+                dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
                 diabetesUpdatedAt: diabetesChanged ? now : existingProfile?.diabetesUpdatedAt,
                 htnUpdatedAt: htnChanged ? now : existingProfile?.htnUpdatedAt,
                 dyslipidemiaUpdatedAt: dyslipidemiaChanged ? now : existingProfile?.dyslipidemiaUpdatedAt,
@@ -255,9 +277,20 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 triglycerides: data.triglycerides,
                 hdl: data.hdl,
                 ldl: data.ldl,
-                diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null) ? now : null,
-                htnUpdatedAt: (data.bloodPressure && data.bloodPressure.trim() !== '') ? now : null,
-                dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null) ? now : null,
+                diabetesOnSet: data.diabetesOnSet,
+                diabetesIsOnDrugs: data.diabetesIsOnDrugs,
+                diabetesDrugsText: data.diabetesDrugsText,
+                diabetesSugarControl: data.diabetesSugarControl,
+                diabetesComplications: data.diabetesComplications,
+                htnOnSet: data.htnOnSet,
+                htnIsOnDrugs: data.htnIsOnDrugs,
+                htnDrugsText: data.htnDrugsText,
+                dyslipidemiaOnSet: data.dyslipidemiaOnSet,
+                dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
+                dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
+                diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null || data.diabetesOnSet !== null || data.diabetesIsOnDrugs || data.diabetesDrugsText !== null || data.diabetesSugarControl || data.diabetesComplications !== null) ? now : null,
+                htnUpdatedAt: ((data.bloodPressure && data.bloodPressure.trim() !== '') || data.htnOnSet !== null || data.htnIsOnDrugs || data.htnDrugsText !== null) ? now : null,
+                dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null || data.dyslipidemiaOnSet !== null || data.dyslipidemiaIsOnDrugs || data.dyslipidemiaDrugsText !== null) ? now : null,
             }
         })
         revalidatePath(`/clinical-profile/${patientId}`)
