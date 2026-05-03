@@ -99,6 +99,10 @@ export default function ChronicIllnessForm({
     const [dyslipidemiaDrugsText, setDyslipidemiaDrugsText] = useState(initialDyslipidemiaDrugsText || '')
     const [savedDyslipidemiaDrugsText, setSavedDyslipidemiaDrugsText] = useState(dyslipidemiaDrugsText)
 
+    const [isDiabetesEditing, setIsDiabetesEditing] = useState(false)
+    const [isHtnEditing, setIsHtnEditing] = useState(false)
+    const [isDyslipidemiaEditing, setIsDyslipidemiaEditing] = useState(false)
+
     const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText
     const [isSaving, setIsSaving] = useState(false)
     const [message, setMessage] = useState('')
@@ -167,6 +171,11 @@ export default function ChronicIllnessForm({
             setSavedDyslipidemiaOnSet(dyslipidemiaOnSetValue)
             setSavedDyslipidemiaIsOnDrugs(dyslipidemiaIsOnDrugs)
             setSavedDyslipidemiaDrugsText(dyslipidemiaIsOnDrugs ? dyslipidemiaDrugsText : '')
+            
+            setIsDiabetesEditing(false)
+            setIsHtnEditing(false)
+            setIsDyslipidemiaEditing(false)
+            
             router.refresh()
         } else {
             setError(result.error || 'Failed to save')
@@ -214,11 +223,23 @@ export default function ChronicIllnessForm({
                             </button>
                         </div>
                     </div>
-                    {diabetesUpdatedAt && (
-                        <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
-                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(diabetesUpdatedAt))}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsDiabetesEditing(!isDiabetesEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isDiabetesEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isDiabetesEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {diabetesUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(diabetesUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 
                 <div className="min-h-[170px] md:min-h-[80px]">
@@ -235,8 +256,9 @@ export default function ChronicIllnessForm({
                                     name="fbs"
                                     id="fbs"
                                     value={fbs}
-                                    onChange={(e) => setFbs(e.target.value)}
-                                    className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                    onChange={(e) => isDiabetesEditing && setFbs(e.target.value)}
+                                    readOnly={!isDiabetesEditing}
+                                    className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDiabetesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                     placeholder="0.00"
                                 />
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -256,8 +278,9 @@ export default function ChronicIllnessForm({
                                     name="hba1c"
                                     id="hba1c"
                                     value={hba1c}
-                                    onChange={(e) => setHba1c(e.target.value)}
-                                    className="block w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                    onChange={(e) => isDiabetesEditing && setHba1c(e.target.value)}
+                                    readOnly={!isDiabetesEditing}
+                                    className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDiabetesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                     placeholder="0.0"
                                 />
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -278,8 +301,8 @@ export default function ChronicIllnessForm({
                                         name="onSet"
                                         value={val}
                                         checked={onSetValue === val}
-                                        onChange={(e) => setOnSetValue(e.target.value)}
-                                        className="h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 cursor-pointer"
+                                        onChange={(e) => isDiabetesEditing && setOnSetValue(e.target.value)}
+                                        className={`h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 ${isDiabetesEditing ? 'cursor-pointer' : 'cursor-default'}`}
                                     />
                                     <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{val}</span>
                                 </label>
@@ -290,14 +313,15 @@ export default function ChronicIllnessForm({
 
                 {diabetesTab === 'drugs' && (
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 w-full h-full pt-1">
-                        <label className="flex items-center cursor-pointer space-x-3 pt-1">
+                            <label className={`flex items-center space-x-3 pt-1 ${isDiabetesEditing ? 'cursor-pointer' : 'cursor-default'}`}>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Patient already on drugs</span>
                                 <div className="relative">
                                     <input 
                                         type="checkbox" 
                                         className="sr-only" 
                                         checked={isOnDrugs}
-                                        onChange={(e) => setIsOnDrugs(e.target.checked)}
+                                        onChange={(e) => isDiabetesEditing && setIsOnDrugs(e.target.checked)}
+                                        disabled={!isDiabetesEditing}
                                     />
                                     <div className={`block w-10 h-6 rounded-full transition-colors ${isOnDrugs ? 'bg-teal-600 dark:bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
                                     <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isOnDrugs ? 'transform translate-x-4' : ''}`}></div>
@@ -311,9 +335,10 @@ export default function ChronicIllnessForm({
                                     id="drugsText"
                                     rows={3}
                                     value={drugsText}
-                                    onChange={(e) => setDrugsText(e.target.value)}
+                                    onChange={(e) => isDiabetesEditing && setDrugsText(e.target.value)}
                                     disabled={!isOnDrugs}
-                                    className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow disabled:bg-slate-100 disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none"
+                                    readOnly={!isDiabetesEditing}
+                                    className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDiabetesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
                                     placeholder="Enter drugs..."
                                 />
                             </div>
@@ -322,14 +347,14 @@ export default function ChronicIllnessForm({
 
                     {diabetesTab === 'sugarControl' && (
                         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 w-full h-full pt-1">
-                            <label className="flex items-center cursor-pointer space-x-3 pt-1">
+                            <label className={`flex items-center space-x-3 pt-1 ${isDiabetesEditing ? 'cursor-pointer' : 'cursor-default'}`}>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Sugar control</span>
                                 <div className="relative">
                                     <input 
                                         type="checkbox" 
                                         className="sr-only" 
                                         checked={isSugarControl}
-                                        onChange={(e) => setIsSugarControl(e.target.checked)}
+                                        onChange={(e) => isDiabetesEditing && setIsSugarControl(e.target.checked)}
                                     />
                                     <div className={`block w-10 h-6 rounded-full transition-colors ${isSugarControl ? 'bg-teal-600 dark:bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
                                     <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isSugarControl ? 'transform translate-x-4' : ''}`}></div>
@@ -343,9 +368,10 @@ export default function ChronicIllnessForm({
                                     id="complicationsText"
                                     rows={3}
                                     value={complicationsText}
-                                    onChange={(e) => setComplicationsText(e.target.value)}
+                                    onChange={(e) => isDiabetesEditing && setComplicationsText(e.target.value)}
                                     disabled={!isSugarControl}
-                                    className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow disabled:bg-slate-100 disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none"
+                                    readOnly={!isDiabetesEditing}
+                                    className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDiabetesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
                                     placeholder="Enter complications..."
                                 />
                             </div>
@@ -383,11 +409,23 @@ export default function ChronicIllnessForm({
                             </button>
                         </div>
                     </div>
-                    {htnUpdatedAt && (
-                        <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
-                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(htnUpdatedAt))}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsHtnEditing(!isHtnEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isHtnEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isHtnEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {htnUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(htnUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="min-h-[170px] md:min-h-[80px]">
@@ -404,8 +442,9 @@ export default function ChronicIllnessForm({
                                         name="bp"
                                         id="bp"
                                         value={bp}
-                                        onChange={(e) => setBp(e.target.value)}
-                                        className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                        onChange={(e) => isHtnEditing && setBp(e.target.value)}
+                                        readOnly={!isHtnEditing}
+                                        className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isHtnEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                         placeholder="120/80"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -426,8 +465,8 @@ export default function ChronicIllnessForm({
                                             name="htnOnSet"
                                             value={val}
                                             checked={htnOnSetValue === val}
-                                            onChange={(e) => setHtnOnSetValue(e.target.value)}
-                                            className="h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 cursor-pointer"
+                                            onChange={(e) => isHtnEditing && setHtnOnSetValue(e.target.value)}
+                                            className={`h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 ${isHtnEditing ? 'cursor-pointer' : 'cursor-default'}`}
                                         />
                                         <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{val}</span>
                                     </label>
@@ -438,14 +477,14 @@ export default function ChronicIllnessForm({
 
                     {htnTab === 'drugs' && (
                         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 w-full h-full pt-1">
-                            <label className="flex items-center cursor-pointer space-x-3 pt-1">
+                            <label className={`flex items-center space-x-3 pt-1 ${isHtnEditing ? 'cursor-pointer' : 'cursor-default'}`}>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Patient already on drugs</span>
                                 <div className="relative">
                                     <input 
                                         type="checkbox" 
                                         className="sr-only" 
                                         checked={htnIsOnDrugs}
-                                        onChange={(e) => setHtnIsOnDrugs(e.target.checked)}
+                                        onChange={(e) => isHtnEditing && setHtnIsOnDrugs(e.target.checked)}
                                     />
                                     <div className={`block w-10 h-6 rounded-full transition-colors ${htnIsOnDrugs ? 'bg-teal-600 dark:bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
                                     <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${htnIsOnDrugs ? 'transform translate-x-4' : ''}`}></div>
@@ -459,9 +498,10 @@ export default function ChronicIllnessForm({
                                     id="htnDrugsText"
                                     rows={3}
                                     value={htnDrugsText}
-                                    onChange={(e) => setHtnDrugsText(e.target.value)}
+                                    onChange={(e) => isHtnEditing && setHtnDrugsText(e.target.value)}
                                     disabled={!htnIsOnDrugs}
-                                    className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow disabled:bg-slate-100 disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none"
+                                    readOnly={!isHtnEditing}
+                                    className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isHtnEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
                                     placeholder="Enter drugs..."
                                 />
                             </div>
@@ -499,11 +539,23 @@ export default function ChronicIllnessForm({
                             </button>
                         </div>
                     </div>
-                    {dyslipidemiaUpdatedAt && (
-                        <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
-                            Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dyslipidemiaUpdatedAt))}
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsDyslipidemiaEditing(!isDyslipidemiaEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isDyslipidemiaEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isDyslipidemiaEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {dyslipidemiaUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dyslipidemiaUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="min-h-[170px] md:min-h-[80px]">
@@ -520,8 +572,9 @@ export default function ChronicIllnessForm({
                                         name="totalCholesterol"
                                         id="totalCholesterol"
                                         value={totalCholesterol}
-                                        onChange={(e) => setTotalCholesterol(e.target.value)}
-                                        className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                        onChange={(e) => isDyslipidemiaEditing && setTotalCholesterol(e.target.value)}
+                                        readOnly={!isDyslipidemiaEditing}
+                                        className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDyslipidemiaEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                         placeholder="0.0"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -541,8 +594,9 @@ export default function ChronicIllnessForm({
                                         name="triglycerides"
                                         id="triglycerides"
                                         value={triglycerides}
-                                        onChange={(e) => setTriglycerides(e.target.value)}
-                                        className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                        onChange={(e) => isDyslipidemiaEditing && setTriglycerides(e.target.value)}
+                                        readOnly={!isDyslipidemiaEditing}
+                                        className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDyslipidemiaEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                         placeholder="0.0"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -562,8 +616,9 @@ export default function ChronicIllnessForm({
                                         name="hdl"
                                         id="hdl"
                                         value={hdl}
-                                        onChange={(e) => setHdl(e.target.value)}
-                                        className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                        onChange={(e) => isDyslipidemiaEditing && setHdl(e.target.value)}
+                                        readOnly={!isDyslipidemiaEditing}
+                                        className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDyslipidemiaEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                         placeholder="0.0"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -583,8 +638,9 @@ export default function ChronicIllnessForm({
                                         name="ldl"
                                         id="ldl"
                                         value={ldl}
-                                        onChange={(e) => setLdl(e.target.value)}
-                                        className="block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow"
+                                        onChange={(e) => isDyslipidemiaEditing && setLdl(e.target.value)}
+                                        readOnly={!isDyslipidemiaEditing}
+                                        className={`block w-full rounded-md border-0 py-2.5 pl-3 pr-16 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow ${isDyslipidemiaEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                         placeholder="0.0"
                                     />
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -605,8 +661,8 @@ export default function ChronicIllnessForm({
                                             name="dyslipidemiaOnSet"
                                             value={val}
                                             checked={dyslipidemiaOnSetValue === val}
-                                            onChange={(e) => setDyslipidemiaOnSetValue(e.target.value)}
-                                            className="h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 cursor-pointer"
+                                            onChange={(e) => isDyslipidemiaEditing && setDyslipidemiaOnSetValue(e.target.value)}
+                                            className={`h-4 w-4 border-slate-300 text-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-teal-500 ${isDyslipidemiaEditing ? 'cursor-pointer' : 'cursor-default'}`}
                                         />
                                         <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{val}</span>
                                     </label>
@@ -617,14 +673,14 @@ export default function ChronicIllnessForm({
 
                     {dyslipidemiaTab === 'drugs' && (
                         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 w-full h-full pt-1">
-                            <label className="flex items-center cursor-pointer space-x-3 pt-1">
+                            <label className={`flex items-center space-x-3 pt-1 ${isDyslipidemiaEditing ? 'cursor-pointer' : 'cursor-default'}`}>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Patient already on drugs</span>
                                 <div className="relative">
                                     <input 
                                         type="checkbox" 
                                         className="sr-only" 
                                         checked={dyslipidemiaIsOnDrugs}
-                                        onChange={(e) => setDyslipidemiaIsOnDrugs(e.target.checked)}
+                                        onChange={(e) => isDyslipidemiaEditing && setDyslipidemiaIsOnDrugs(e.target.checked)}
                                     />
                                     <div className={`block w-10 h-6 rounded-full transition-colors ${dyslipidemiaIsOnDrugs ? 'bg-teal-600 dark:bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
                                     <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${dyslipidemiaIsOnDrugs ? 'transform translate-x-4' : ''}`}></div>
@@ -638,9 +694,10 @@ export default function ChronicIllnessForm({
                                     id="dyslipidemiaDrugsText"
                                     rows={3}
                                     value={dyslipidemiaDrugsText}
-                                    onChange={(e) => setDyslipidemiaDrugsText(e.target.value)}
+                                    onChange={(e) => isDyslipidemiaEditing && setDyslipidemiaDrugsText(e.target.value)}
                                     disabled={!dyslipidemiaIsOnDrugs}
-                                    className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:ring-slate-700 dark:focus:ring-teal-500 transition-shadow disabled:bg-slate-100 disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none"
+                                    readOnly={!isDyslipidemiaEditing}
+                                    className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDyslipidemiaEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
                                     placeholder="Enter drugs..."
                                 />
                             </div>
