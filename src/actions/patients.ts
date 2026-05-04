@@ -318,3 +318,45 @@ export async function saveChronicIllnesses(patientId: string, data: {
         return { success: false, error: 'Failed to save diabetes profile' }
     }
 }
+
+export async function savePresentingComplain(patientId: string, data: {
+    symptom: string | null,
+    examination: string | null,
+    investigation: string | null,
+    diagnose: string | null,
+}) {
+    try {
+        const user = await getCurrentUser()
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const patient = await prisma.patient.findUnique({
+            where: { id: patientId }
+        })
+
+        if (!patient) {
+            return { success: false, error: 'Patient not found' }
+        }
+
+        if (user.role !== 'ADMIN' && patient.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Unauthorized access to this patient' }
+        }
+
+        await prisma.presentingComplain.create({
+            data: {
+                patientId,
+                symptom: data.symptom,
+                examination: data.examination,
+                investigation: data.investigation,
+                diagnose: data.diagnose,
+            }
+        })
+        
+        revalidatePath(`/clinical-profile/${patientId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to save presenting complain:', error)
+        return { success: false, error: 'Failed to save data' }
+    }
+}

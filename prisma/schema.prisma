@@ -45,6 +45,7 @@ model Patient {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt  
   chronicIllnessProfile ChronicIllnessProfile?
+  presentingComplains   PresentingComplain[]
 }
 
 model ChronicIllnessProfile {
@@ -79,4 +80,16 @@ model ChronicIllnessProfile {
   otherChronicIllnessesText String?
   otherChronicIllnessesUpdatedAt DateTime?
   updatedAt DateTime @updatedAt
+}
+
+model PresentingComplain {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  symptom       String?
+  examination   String?
+  investigation String?
+  diagnose      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

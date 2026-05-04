@@ -7,6 +7,8 @@ import Link from 'next/link';
 // Component Imports
 import PatientProfileHeader from '@/components/PatientProfileHeader';
 import ChronicIllnessForm from '@/components/ChronicIllnessForm';
+import PresentingComplainForm from '@/components/PresentingComplainForm';
+import ProfileTabs from '@/components/ProfileTabs';
 
 const ChevronLeftIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -60,42 +62,51 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column - Main History */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Chronic Illness Section */}
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">
-                                <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Chronic Illness</h2>
-                                
-                                {/* Chronic Illness Forms */}
-                                <ChronicIllnessForm 
-                                    patientId={patient.id} 
-                                    initialFbs={(patient as any).chronicIllnessProfile?.fbs || null} 
-                                    initialHba1c={(patient as any).chronicIllnessProfile?.hba1c || null} 
-                                    initialBloodPressure={(patient as any).chronicIllnessProfile?.bloodPressure || null}
-                                    initialTotalCholesterol={(patient as any).chronicIllnessProfile?.totalCholesterol || null}
-                                    initialTriglycerides={(patient as any).chronicIllnessProfile?.triglycerides || null}
-                                    initialHdl={(patient as any).chronicIllnessProfile?.hdl || null}
-                                    initialLdl={(patient as any).chronicIllnessProfile?.ldl || null}
-                                    initialDiabetesOnSet={(patient as any).chronicIllnessProfile?.diabetesOnSet || null}
-                                    initialDiabetesIsOnDrugs={(patient as any).chronicIllnessProfile?.diabetesIsOnDrugs || false}
-                                    initialDiabetesDrugsText={(patient as any).chronicIllnessProfile?.diabetesDrugsText || null}
-                                    initialDiabetesSugarControl={(patient as any).chronicIllnessProfile?.diabetesSugarControl || false}
-                                    initialDiabetesComplications={(patient as any).chronicIllnessProfile?.diabetesComplications || null}
-                                    initialHtnOnSet={(patient as any).chronicIllnessProfile?.htnOnSet || null}
-                                    initialHtnIsOnDrugs={(patient as any).chronicIllnessProfile?.htnIsOnDrugs || false}
-                                    initialHtnDrugsText={(patient as any).chronicIllnessProfile?.htnDrugsText || null}
-                                    initialDyslipidemiaOnSet={(patient as any).chronicIllnessProfile?.dyslipidemiaOnSet || null}
-                                    initialDyslipidemiaIsOnDrugs={(patient as any).chronicIllnessProfile?.dyslipidemiaIsOnDrugs || false}
-                                    initialDyslipidemiaDrugsText={(patient as any).chronicIllnessProfile?.dyslipidemiaDrugsText || null}
-                                    initialDietAndLifestyleText={(patient as any).chronicIllnessProfile?.dietAndLifestyleText || null}
-                                    initialAssessOfComplicationsText={(patient as any).chronicIllnessProfile?.assessOfComplicationsText || null}
-                                    initialOtherChronicIllnessesText={(patient as any).chronicIllnessProfile?.otherChronicIllnessesText || null}
-                                    diabetesUpdatedAt={(patient as any).chronicIllnessProfile?.diabetesUpdatedAt || null}
-                                    htnUpdatedAt={(patient as any).chronicIllnessProfile?.htnUpdatedAt || null}
-                                    dyslipidemiaUpdatedAt={(patient as any).chronicIllnessProfile?.dyslipidemiaUpdatedAt || null}
-                                    dietAndLifestyleUpdatedAt={(patient as any).chronicIllnessProfile?.dietAndLifestyleUpdatedAt || null}
-                                    assessOfComplicationsUpdatedAt={(patient as any).chronicIllnessProfile?.assessOfComplicationsUpdatedAt || null}
-                                    otherChronicIllnessesUpdatedAt={(patient as any).chronicIllnessProfile?.otherChronicIllnessesUpdatedAt || null}
-                                />
-                            </div>
+                            <ProfileTabs
+                                presentingComplain={
+                                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">
+                                        <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Presenting Complain</h2>
+                                        <PresentingComplainForm patientId={patient.id} />
+                                    </div>
+                                }
+                                chronicIllness={
+                                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">
+                                        <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Chronic Illness</h2>
+                                        
+                                        {/* Chronic Illness Forms */}
+                                        <ChronicIllnessForm 
+                                            patientId={patient.id} 
+                                            initialFbs={(patient as any).chronicIllnessProfile?.fbs || null} 
+                                            initialHba1c={(patient as any).chronicIllnessProfile?.hba1c || null} 
+                                            initialBloodPressure={(patient as any).chronicIllnessProfile?.bloodPressure || null}
+                                            initialTotalCholesterol={(patient as any).chronicIllnessProfile?.totalCholesterol || null}
+                                            initialTriglycerides={(patient as any).chronicIllnessProfile?.triglycerides || null}
+                                            initialHdl={(patient as any).chronicIllnessProfile?.hdl || null}
+                                            initialLdl={(patient as any).chronicIllnessProfile?.ldl || null}
+                                            initialDiabetesOnSet={(patient as any).chronicIllnessProfile?.diabetesOnSet || null}
+                                            initialDiabetesIsOnDrugs={(patient as any).chronicIllnessProfile?.diabetesIsOnDrugs || false}
+                                            initialDiabetesDrugsText={(patient as any).chronicIllnessProfile?.diabetesDrugsText || null}
+                                            initialDiabetesSugarControl={(patient as any).chronicIllnessProfile?.diabetesSugarControl || false}
+                                            initialDiabetesComplications={(patient as any).chronicIllnessProfile?.diabetesComplications || null}
+                                            initialHtnOnSet={(patient as any).chronicIllnessProfile?.htnOnSet || null}
+                                            initialHtnIsOnDrugs={(patient as any).chronicIllnessProfile?.htnIsOnDrugs || false}
+                                            initialHtnDrugsText={(patient as any).chronicIllnessProfile?.htnDrugsText || null}
+                                            initialDyslipidemiaOnSet={(patient as any).chronicIllnessProfile?.dyslipidemiaOnSet || null}
+                                            initialDyslipidemiaIsOnDrugs={(patient as any).chronicIllnessProfile?.dyslipidemiaIsOnDrugs || false}
+                                            initialDyslipidemiaDrugsText={(patient as any).chronicIllnessProfile?.dyslipidemiaDrugsText || null}
+                                            initialDietAndLifestyleText={(patient as any).chronicIllnessProfile?.dietAndLifestyleText || null}
+                                            initialAssessOfComplicationsText={(patient as any).chronicIllnessProfile?.assessOfComplicationsText || null}
+                                            initialOtherChronicIllnessesText={(patient as any).chronicIllnessProfile?.otherChronicIllnessesText || null}
+                                            diabetesUpdatedAt={(patient as any).chronicIllnessProfile?.diabetesUpdatedAt || null}
+                                            htnUpdatedAt={(patient as any).chronicIllnessProfile?.htnUpdatedAt || null}
+                                            dyslipidemiaUpdatedAt={(patient as any).chronicIllnessProfile?.dyslipidemiaUpdatedAt || null}
+                                            dietAndLifestyleUpdatedAt={(patient as any).chronicIllnessProfile?.dietAndLifestyleUpdatedAt || null}
+                                            assessOfComplicationsUpdatedAt={(patient as any).chronicIllnessProfile?.assessOfComplicationsUpdatedAt || null}
+                                            otherChronicIllnessesUpdatedAt={(patient as any).chronicIllnessProfile?.otherChronicIllnessesUpdatedAt || null}
+                                        />
+                                    </div>
+                                }
+                            />
                         </div>
 
                         {/* Right Column - Notes/Other */}
