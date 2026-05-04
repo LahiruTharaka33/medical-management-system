@@ -25,10 +25,14 @@ export default function ChronicIllnessForm({
     initialDyslipidemiaIsOnDrugs,
     initialDyslipidemiaDrugsText,
     initialDietAndLifestyleText,
+    initialAssessOfComplicationsText,
+    initialOtherChronicIllnessesText,
     diabetesUpdatedAt,
     htnUpdatedAt,
     dyslipidemiaUpdatedAt,
-    dietAndLifestyleUpdatedAt
+    dietAndLifestyleUpdatedAt,
+    assessOfComplicationsUpdatedAt,
+    otherChronicIllnessesUpdatedAt
 }: { 
     patientId: string, 
     initialFbs: number | null, 
@@ -50,10 +54,14 @@ export default function ChronicIllnessForm({
     initialDyslipidemiaIsOnDrugs: boolean,
     initialDyslipidemiaDrugsText: string | null,
     initialDietAndLifestyleText: string | null,
+    initialAssessOfComplicationsText: string | null,
+    initialOtherChronicIllnessesText: string | null,
     diabetesUpdatedAt: Date | null,
     htnUpdatedAt: Date | null,
     dyslipidemiaUpdatedAt: Date | null,
-    dietAndLifestyleUpdatedAt: Date | null
+    dietAndLifestyleUpdatedAt: Date | null,
+    assessOfComplicationsUpdatedAt: Date | null,
+    otherChronicIllnessesUpdatedAt: Date | null
 }) {
     const [fbs, setFbs] = useState(initialFbs ? String(initialFbs) : '')
     const [hba1c, setHba1c] = useState(initialHba1c ? String(initialHba1c) : '')
@@ -106,13 +114,23 @@ export default function ChronicIllnessForm({
     const [dietAndLifestyleText, setDietAndLifestyleText] = useState(initialDietAndLifestyleText || '')
     const [savedDietAndLifestyleText, setSavedDietAndLifestyleText] = useState(dietAndLifestyleText)
 
+    const [assessOfComplicationsText, setAssessOfComplicationsText] = useState(initialAssessOfComplicationsText || '')
+    const [savedAssessOfComplicationsText, setSavedAssessOfComplicationsText] = useState(assessOfComplicationsText)
+
+    const [otherChronicIllnessesText, setOtherChronicIllnessesText] = useState(initialOtherChronicIllnessesText || '')
+    const [savedOtherChronicIllnessesText, setSavedOtherChronicIllnessesText] = useState(otherChronicIllnessesText)
+
     const [isDiabetesEditing, setIsDiabetesEditing] = useState(false)
     const [isHtnEditing, setIsHtnEditing] = useState(false)
     const [isDyslipidemiaEditing, setIsDyslipidemiaEditing] = useState(false)
     const [isDietAndLifestyleEditing, setIsDietAndLifestyleEditing] = useState(false)
     const [isDietAndLifestyleExpanded, setIsDietAndLifestyleExpanded] = useState(false)
+    const [isAssessOfComplicationsEditing, setIsAssessOfComplicationsEditing] = useState(false)
+    const [isAssessOfComplicationsExpanded, setIsAssessOfComplicationsExpanded] = useState(false)
+    const [isOtherChronicIllnessesEditing, setIsOtherChronicIllnessesEditing] = useState(false)
+    const [isOtherChronicIllnessesExpanded, setIsOtherChronicIllnessesExpanded] = useState(false)
 
-    const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText || dietAndLifestyleText !== savedDietAndLifestyleText
+    const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText || dietAndLifestyleText !== savedDietAndLifestyleText || assessOfComplicationsText !== savedAssessOfComplicationsText || otherChronicIllnessesText !== savedOtherChronicIllnessesText
     const [isSaving, setIsSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
@@ -158,7 +176,9 @@ export default function ChronicIllnessForm({
             dyslipidemiaOnSet: dyslipidemiaOnSetValue || null,
             dyslipidemiaIsOnDrugs: dyslipidemiaIsOnDrugs,
             dyslipidemiaDrugsText: dyslipidemiaIsOnDrugs ? (dyslipidemiaDrugsText || null) : null,
-            dietAndLifestyleText: dietAndLifestyleText || null
+            dietAndLifestyleText: dietAndLifestyleText || null,
+            assessOfComplicationsText: assessOfComplicationsText || null,
+            otherChronicIllnessesText: otherChronicIllnessesText || null
         })
 
         if (result.success) {
@@ -182,11 +202,15 @@ export default function ChronicIllnessForm({
             setSavedDyslipidemiaIsOnDrugs(dyslipidemiaIsOnDrugs)
             setSavedDyslipidemiaDrugsText(dyslipidemiaIsOnDrugs ? dyslipidemiaDrugsText : '')
             setSavedDietAndLifestyleText(dietAndLifestyleText)
+            setSavedAssessOfComplicationsText(assessOfComplicationsText)
+            setSavedOtherChronicIllnessesText(otherChronicIllnessesText)
             
             setIsDiabetesEditing(false)
             setIsHtnEditing(false)
             setIsDyslipidemiaEditing(false)
             setIsDietAndLifestyleEditing(false)
+            setIsAssessOfComplicationsEditing(false)
+            setIsOtherChronicIllnessesEditing(false)
             
             router.refresh()
         } else {
@@ -763,6 +787,106 @@ export default function ChronicIllnessForm({
                             readOnly={!isDietAndLifestyleEditing}
                             className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
                             placeholder="Enter diet and lifestyle recommendations..."
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Assess of Complications Sub-section */}
+            <div className={`border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-300`}>
+                <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${isAssessOfComplicationsExpanded ? 'mb-6' : 'mb-0'}`}>
+                    <div className="flex items-center gap-6">
+                        <button 
+                            type="button" 
+                            onClick={() => setIsAssessOfComplicationsExpanded(!isAssessOfComplicationsExpanded)} 
+                            className="flex items-center gap-2 text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transition-transform duration-200 ${isAssessOfComplicationsExpanded ? 'rotate-180' : ''}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            Assess of Complications
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsAssessOfComplicationsEditing(!isAssessOfComplicationsEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isAssessOfComplicationsEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isAssessOfComplicationsEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {assessOfComplicationsUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(assessOfComplicationsUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {isAssessOfComplicationsExpanded && (
+                    <div className="w-full">
+                        <textarea
+                            name="assessOfComplicationsText"
+                            id="assessOfComplicationsText"
+                            rows={4}
+                            value={assessOfComplicationsText}
+                            onChange={(e) => isAssessOfComplicationsEditing && setAssessOfComplicationsText(e.target.value)}
+                            readOnly={!isAssessOfComplicationsEditing}
+                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isAssessOfComplicationsEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                            placeholder="Enter assess of complications..."
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Other Chronic Illnesses Sub-section */}
+            <div className={`border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-300`}>
+                <div className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${isOtherChronicIllnessesExpanded ? 'mb-6' : 'mb-0'}`}>
+                    <div className="flex items-center gap-6">
+                        <button 
+                            type="button" 
+                            onClick={() => setIsOtherChronicIllnessesExpanded(!isOtherChronicIllnessesExpanded)} 
+                            className="flex items-center gap-2 text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 transition-transform duration-200 ${isOtherChronicIllnessesExpanded ? 'rotate-180' : ''}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            Other Chronic Illnesses
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsOtherChronicIllnessesEditing(!isOtherChronicIllnessesEditing)}
+                            className={`transition-colors p-1.5 rounded-md ${isOtherChronicIllnessesEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title={isOtherChronicIllnessesEditing ? "Lock Section" : "Edit Section"}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+                        {otherChronicIllnessesUpdatedAt && (
+                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(otherChronicIllnessesUpdatedAt))}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {isOtherChronicIllnessesExpanded && (
+                    <div className="w-full">
+                        <textarea
+                            name="otherChronicIllnessesText"
+                            id="otherChronicIllnessesText"
+                            rows={4}
+                            value={otherChronicIllnessesText}
+                            onChange={(e) => isOtherChronicIllnessesEditing && setOtherChronicIllnessesText(e.target.value)}
+                            readOnly={!isOtherChronicIllnessesEditing}
+                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isOtherChronicIllnessesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                            placeholder="Enter other chronic illnesses..."
                         />
                     </div>
                 )}

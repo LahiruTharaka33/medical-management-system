@@ -218,6 +218,8 @@ export async function saveChronicIllnesses(patientId: string, data: {
     dyslipidemiaIsOnDrugs: boolean,
     dyslipidemiaDrugsText: string | null,
     dietAndLifestyleText: string | null,
+    assessOfComplicationsText: string | null,
+    otherChronicIllnessesText: string | null,
 }) {
     try {
         const user = await getCurrentUser()
@@ -244,6 +246,8 @@ export async function saveChronicIllnesses(patientId: string, data: {
         const htnChanged = !existingProfile || existingProfile.bloodPressure !== data.bloodPressure || existingProfile.htnOnSet !== data.htnOnSet || existingProfile.htnIsOnDrugs !== data.htnIsOnDrugs || existingProfile.htnDrugsText !== data.htnDrugsText
         const dyslipidemiaChanged = !existingProfile || existingProfile.totalCholesterol !== data.totalCholesterol || existingProfile.triglycerides !== data.triglycerides || existingProfile.hdl !== data.hdl || existingProfile.ldl !== data.ldl || existingProfile.dyslipidemiaOnSet !== data.dyslipidemiaOnSet || existingProfile.dyslipidemiaIsOnDrugs !== data.dyslipidemiaIsOnDrugs || existingProfile.dyslipidemiaDrugsText !== data.dyslipidemiaDrugsText
         const dietAndLifestyleChanged = !existingProfile || existingProfile.dietAndLifestyleText !== data.dietAndLifestyleText
+        const assessOfComplicationsChanged = !existingProfile || existingProfile.assessOfComplicationsText !== data.assessOfComplicationsText
+        const otherChronicIllnessesChanged = !existingProfile || existingProfile.otherChronicIllnessesText !== data.otherChronicIllnessesText
 
         const profile = await prisma.chronicIllnessProfile.upsert({
             where: { patientId },
@@ -267,10 +271,14 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
                 dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
                 dietAndLifestyleText: data.dietAndLifestyleText,
+                assessOfComplicationsText: data.assessOfComplicationsText,
+                otherChronicIllnessesText: data.otherChronicIllnessesText,
                 diabetesUpdatedAt: diabetesChanged ? now : existingProfile?.diabetesUpdatedAt,
                 htnUpdatedAt: htnChanged ? now : existingProfile?.htnUpdatedAt,
                 dyslipidemiaUpdatedAt: dyslipidemiaChanged ? now : existingProfile?.dyslipidemiaUpdatedAt,
                 dietAndLifestyleUpdatedAt: dietAndLifestyleChanged ? now : existingProfile?.dietAndLifestyleUpdatedAt,
+                assessOfComplicationsUpdatedAt: assessOfComplicationsChanged ? now : existingProfile?.assessOfComplicationsUpdatedAt,
+                otherChronicIllnessesUpdatedAt: otherChronicIllnessesChanged ? now : existingProfile?.otherChronicIllnessesUpdatedAt,
             },
             create: {
                 patientId,
@@ -293,10 +301,14 @@ export async function saveChronicIllnesses(patientId: string, data: {
                 dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
                 dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
                 dietAndLifestyleText: data.dietAndLifestyleText,
+                assessOfComplicationsText: data.assessOfComplicationsText,
+                otherChronicIllnessesText: data.otherChronicIllnessesText,
                 diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null || data.diabetesOnSet !== null || data.diabetesIsOnDrugs || data.diabetesDrugsText !== null || data.diabetesSugarControl || data.diabetesComplications !== null) ? now : null,
                 htnUpdatedAt: ((data.bloodPressure && data.bloodPressure.trim() !== '') || data.htnOnSet !== null || data.htnIsOnDrugs || data.htnDrugsText !== null) ? now : null,
                 dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null || data.dyslipidemiaOnSet !== null || data.dyslipidemiaIsOnDrugs || data.dyslipidemiaDrugsText !== null) ? now : null,
                 dietAndLifestyleUpdatedAt: (data.dietAndLifestyleText !== null && data.dietAndLifestyleText.trim() !== '') ? now : null,
+                assessOfComplicationsUpdatedAt: (data.assessOfComplicationsText !== null && data.assessOfComplicationsText.trim() !== '') ? now : null,
+                otherChronicIllnessesUpdatedAt: (data.otherChronicIllnessesText !== null && data.otherChronicIllnessesText.trim() !== '') ? now : null,
             }
         })
         revalidatePath(`/clinical-profile/${patientId}`)
