@@ -178,7 +178,12 @@ export async function getPatientById(id: string) {
 
         const patient = await prisma.patient.findUnique({
             where: { id },
-            include: { chronicIllnessProfile: true },
+            include: { 
+                chronicIllnessProfile: true,
+                presentingComplains: {
+                    orderBy: { createdAt: 'desc' }
+                }
+            },
         })
 
         if (!patient) {

@@ -64,10 +64,7 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                         <div className="lg:col-span-2 space-y-6">
                             <ProfileTabs
                                 presentingComplain={
-                                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">
-                                        <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Presenting Complain</h2>
-                                        <PresentingComplainForm patientId={patient.id} />
-                                    </div>
+                                    <PresentingComplainForm patientId={patient.id} savedLogs={(patient as any).presentingComplains || []} />
                                 }
                                 chronicIllness={
                                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6">

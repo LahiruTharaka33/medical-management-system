@@ -4,7 +4,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { savePresentingComplain } from '@/actions/patients'
 
-export default function PresentingComplainForm({ patientId }: { patientId: string }) {
+type PresentingComplainLog = {
+    id: string;
+    createdAt: Date;
+    symptom: string | null;
+    examination: string | null;
+    investigation: string | null;
+    diagnose: string | null;
+}
+
+export default function PresentingComplainForm({ patientId, savedLogs = [] }: { patientId: string, savedLogs?: PresentingComplainLog[] }) {
+    const [isExpanded, setIsExpanded] = useState(false)
     const [symptom, setSymptom] = useState('')
     const [examination, setExamination] = useState('')
     const [investigation, setInvestigation] = useState('')
@@ -52,8 +62,25 @@ export default function PresentingComplainForm({ patientId }: { patientId: strin
     }
 
     return (
-        <form onSubmit={handleSave} className="space-y-6">
-            {/* Symptom Sub-section */}
+        <div className="space-y-6">
+            {/* Form Section Card */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6 transition-all duration-300">
+                <div className={`flex items-center justify-between gap-4 ${isExpanded ? 'mb-6' : 'mb-0'}`}>
+                    <button 
+                        type="button" 
+                        onClick={() => setIsExpanded(!isExpanded)} 
+                        className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-white hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-6 h-6 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                        Presenting Complain
+                    </button>
+                </div>
+                
+                {isExpanded && (
+                    <form onSubmit={handleSave} className="space-y-6 fade-in-up">
+                        {/* Symptom Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
                 <div className="flex items-center gap-6 mb-4">
                     <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Symptom</h3>
@@ -140,5 +167,52 @@ export default function PresentingComplainForm({ patientId }: { patientId: strin
                 </button>
             </div>
         </form>
+                )}
+            </div>
+
+            {/* Saved Logs Visualization Card */}
+            {savedLogs.length > 0 && (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6 fade-in-up">
+                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Saved Records</h2>
+                    <div className="space-y-6">
+                        {savedLogs.map((log) => (
+                            <div key={log.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden">
+                                <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
+                                    </span>
+                                </div>
+                                <div className="p-5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Symptom</h4>
+                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.symptom || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Examination</h4>
+                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.examination || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Investigation</h4>
+                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.investigation || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Diagnose</h4>
+                                            {log.diagnose ? (
+                                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                                    {log.diagnose}
+                                                </span>
+                                            ) : (
+                                                <p className="text-sm text-slate-800 dark:text-slate-200">—</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
