@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { auth } from '@/auth'
 
 const prisma = new PrismaClient()
 
@@ -12,11 +13,38 @@ export type MedicineData = {
     brand: string
     type: string
     strength: number
+    unit: string
+}
+
+async function getCurrentUser() {
+    const session = await auth()
+    if (!session?.user?.email) {
+        throw new Error('Not authenticated')
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: {
+            id: true,
+            accessGroupId: true,
+            role: true,
+        },
+    })
+
+    if (!user) {
+        throw new Error('User not found')
+    }
+
+    return user
 }
 
 export async function getMedicines() {
     try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: true, data: [] }
+
         const medicines = await prisma.medicine.findMany({
+            where: { accessGroupId: user.accessGroupId },
             orderBy: { createdAt: 'desc' },
         })
         return { success: true, data: medicines }
@@ -28,6 +56,11 @@ export async function getMedicines() {
 
 export async function createMedicine(data: MedicineData) {
     try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You must belong to an Access Group to register medicines.' }
+        }
+
         const medicine = await prisma.medicine.create({
             data: {
                 code: data.code,
@@ -35,6 +68,8 @@ export async function createMedicine(data: MedicineData) {
                 brand: data.brand,
                 type: data.type,
                 strength: data.strength,
+                unit: data.unit,
+                accessGroupId: user.accessGroupId,
             },
         })
         revalidatePath('/medicines')
@@ -51,6 +86,16 @@ export async function createMedicine(data: MedicineData) {
 export async function updateMedicine(data: MedicineData) {
     if (!data.id) return { success: false, error: 'Medicine ID is required' }
     try {
+        const user = await getCurrentUser()
+        
+        const existing = await prisma.medicine.findUnique({
+            where: { id: data.id }
+        })
+
+        if (!existing || existing.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
         const medicine = await prisma.medicine.update({
             where: { id: data.id },
             data: {
@@ -59,6 +104,7 @@ export async function updateMedicine(data: MedicineData) {
                 brand: data.brand,
                 type: data.type,
                 strength: data.strength,
+                unit: data.unit,
             },
         })
         revalidatePath('/medicines')
@@ -74,6 +120,16 @@ export async function updateMedicine(data: MedicineData) {
 
 export async function deleteMedicine(id: string) {
     try {
+        const user = await getCurrentUser()
+        
+        const existing = await prisma.medicine.findUnique({
+            where: { id }
+        })
+
+        if (!existing || existing.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
         await prisma.medicine.delete({
             where: { id },
         })
@@ -87,7 +143,11 @@ export async function deleteMedicine(id: string) {
 
 export async function getMedicineTypes() {
     try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: true, data: [] }
+
         const types = await prisma.medicineType.findMany({
+            where: { accessGroupId: user.accessGroupId },
             orderBy: { name: 'asc' },
         })
         return { success: true, data: types }
@@ -99,8 +159,14 @@ export async function getMedicineTypes() {
 
 export async function createMedicineType(name: string) {
     try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
         const medicineType = await prisma.medicineType.create({
-            data: { name },
+            data: { 
+                name,
+                accessGroupId: user.accessGroupId,
+            },
         })
         return { success: true, data: medicineType }
     } catch (error: any) {
@@ -114,12 +180,77 @@ export async function createMedicineType(name: string) {
 
 export async function deleteMedicineType(name: string) {
     try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
         await prisma.medicineType.delete({
-            where: { name },
+            where: { 
+                name_accessGroupId: {
+                    name,
+                    accessGroupId: user.accessGroupId
+                }
+            },
         })
         return { success: true }
     } catch (error) {
         console.error('Error deleting medicine type:', error)
         return { success: false, error: 'Failed to delete type' }
+    }
+}
+
+export async function getMedicineUnits() {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: true, data: [] }
+
+        const units = await prisma.medicineUnit.findMany({
+            where: { accessGroupId: user.accessGroupId },
+            orderBy: { name: 'asc' },
+        })
+        return { success: true, data: units }
+    } catch (error) {
+        console.error('Error fetching medicine units:', error)
+        return { success: false, error: 'Failed to fetch medicine units' }
+    }
+}
+
+export async function createMedicineUnit(name: string) {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
+        const unit = await prisma.medicineUnit.create({
+            data: { 
+                name,
+                accessGroupId: user.accessGroupId,
+            },
+        })
+        return { success: true, data: unit }
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return { success: false, error: 'This unit already exists' }
+        }
+        console.error('Error creating medicine unit:', error)
+        return { success: false, error: 'Failed to create unit' }
+    }
+}
+
+export async function deleteMedicineUnit(name: string) {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
+        await prisma.medicineUnit.delete({
+            where: { 
+                name_accessGroupId: {
+                    name,
+                    accessGroupId: user.accessGroupId
+                }
+            },
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Error deleting medicine unit:', error)
+        return { success: false, error: 'Failed to delete unit' }
     }
 }

@@ -142,7 +142,7 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
                                                     {medicine.type}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{medicine.strength} mg</td>
+                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{medicine.strength} {medicine.unit}</td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button

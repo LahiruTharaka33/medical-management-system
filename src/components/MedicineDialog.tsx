@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MedicineData, getMedicineTypes, createMedicineType, deleteMedicineType } from '@/actions/medicines';
+import { MedicineData, getMedicineTypes, createMedicineType, deleteMedicineType, getMedicineUnits, createMedicineUnit, deleteMedicineUnit } from '@/actions/medicines';
 
 type MedicineDialogProps = {
     open: boolean;
@@ -17,6 +17,7 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
         brand: '',
         type: '',
         strength: 0,
+        unit: 'mg',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -27,10 +28,21 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
+    // Unit States
+    const [units, setUnits] = useState<string[]>([]);
+    const [unitDropdownOpen, setUnitDropdownOpen] = useState(false);
+    const [isAddingNewUnit, setIsAddingNewUnit] = useState(false);
+    const [newUnit, setNewUnit] = useState('');
+    const [addingUnitLoading, setAddingUnitLoading] = useState(false);
+    const unitDropdownRef = React.useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setDropdownOpen(false);
+            }
+            if (unitDropdownRef.current && !unitDropdownRef.current.contains(event.target as Node)) {
+                setUnitDropdownOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -40,17 +52,31 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
     useEffect(() => {
         if (open) {
             fetchTypes();
+            fetchUnits();
         }
     }, [open]);
 
     const fetchTypes = async () => {
+        const defaultTypes = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Drops'];
         const res = await getMedicineTypes();
         if (res.success && res.data) {
             const fetchedTypes = res.data.map(t => t.name);
-            // Default types if table is empty
-            const defaultTypes = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Drops'];
             const allTypes = Array.from(new Set([...defaultTypes, ...fetchedTypes]));
             setTypes(allTypes.sort());
+        } else {
+            setTypes(defaultTypes.sort());
+        }
+    };
+
+    const fetchUnits = async () => {
+        const defaultUnits = ['mg', 'g', 'ml', 'mcg', 'IU', '%'];
+        const res = await getMedicineUnits();
+        if (res.success && res.data) {
+            const fetchedUnits = res.data.map(u => u.name);
+            const allUnits = Array.from(new Set([...defaultUnits, ...fetchedUnits]));
+            setUnits(allUnits.sort());
+        } else {
+            setUnits(defaultUnits.sort());
         }
     };
 
@@ -70,6 +96,37 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
         }
     };
 
+    const handleDeleteUnit = async (unitName: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm(`Are you sure you want to delete the unit "${unitName}"?`)) return;
+        
+        const res = await deleteMedicineUnit(unitName);
+        if (res.success) {
+            setUnits(prev => prev.filter(u => u !== unitName));
+            if (formData.unit === unitName) {
+                setFormData(prev => ({ ...prev, unit: 'mg' }));
+            }
+        } else {
+            setUnits(prev => prev.filter(u => u !== unitName));
+        }
+    };
+
+    const handleAddNewUnit = async () => {
+        const trimmedUnit = newUnit.trim();
+        if (!trimmedUnit) return;
+        setAddingUnitLoading(true);
+        const res = await createMedicineUnit(trimmedUnit);
+        if (res.success) {
+            setUnits(prev => Array.from(new Set([...prev, trimmedUnit])).sort());
+            setFormData(prev => ({ ...prev, unit: trimmedUnit }));
+            setNewUnit('');
+            setIsAddingNewUnit(false);
+        } else {
+            setError(res.error || 'Failed to add new unit');
+        }
+        setAddingUnitLoading(false);
+    };
+
     useEffect(() => {
         if (medicine) {
             setFormData(medicine);
@@ -80,10 +137,15 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
                 brand: '',
                 type: '',
                 strength: 0,
+                unit: 'mg',
             });
         }
         setIsAddingNewType(false);
         setNewType('');
+        setIsAddingNewUnit(false);
+        setNewUnit('');
+        setDropdownOpen(false);
+        setUnitDropdownOpen(false);
     }, [medicine, open]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -95,12 +157,13 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
     };
 
     const handleAddNewType = async () => {
-        if (!newType.trim()) return;
+        const trimmedType = newType.trim();
+        if (!trimmedType) return;
         setAddingTypeLoading(true);
-        const res = await createMedicineType(newType.trim());
+        const res = await createMedicineType(trimmedType);
         if (res.success) {
-            setTypes(prev => [...prev, newType.trim()].sort());
-            setFormData(prev => ({ ...prev, type: newType.trim() }));
+            setTypes(prev => Array.from(new Set([...prev, trimmedType])).sort());
+            setFormData(prev => ({ ...prev, type: trimmedType }));
             setNewType('');
             setIsAddingNewType(false);
         } else {
@@ -278,17 +341,98 @@ const MedicineDialog = ({ open, onClose, medicine, onSave }: MedicineDialogProps
                                 )}
                             </div>
                         </div>
-                        <div>
-                            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Strength (mg)</label>
-                            <input
-                                type="number"
-                                name="strength"
-                                step="0.01"
-                                required
-                                value={formData.strength}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                            />
+
+                        {/* Strength with Integrated Unit Selector */}
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Strength</label>
+                            <div className="flex items-center rounded-lg border border-slate-300 bg-white focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500 dark:border-slate-600 dark:bg-slate-900">
+                                <input
+                                    type="number"
+                                    name="strength"
+                                    step="0.01"
+                                    required
+                                    value={formData.strength}
+                                    onChange={handleChange}
+                                    className="w-full bg-transparent px-3 py-2 text-sm text-slate-900 outline-none dark:text-white"
+                                    placeholder="0"
+                                />
+                                
+                                {/* Unit Selector - Integrated as a suffix */}
+                                <div className="relative border-l border-slate-200 dark:border-slate-700" ref={unitDropdownRef}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUnitDropdownOpen(!unitDropdownOpen)}
+                                        className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+                                    >
+                                        <span className="min-w-[24px]">{formData.unit || 'mg'}</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${unitDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6"/></svg>
+                                    </button>
+
+                                    {unitDropdownOpen && (
+                                        <div className="absolute right-0 z-[60] mt-1 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
+                                            <div className="overflow-y-auto max-h-48 divide-y divide-slate-100 dark:divide-slate-700">
+                                                {units.map((unit) => (
+                                                    <div
+                                                        key={unit}
+                                                        onClick={() => {
+                                                            setFormData(prev => ({ ...prev, unit }));
+                                                            setUnitDropdownOpen(false);
+                                                        }}
+                                                        className={`group flex w-full items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer ${formData.unit === unit ? 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    >
+                                                        <span>{unit}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => handleDeleteUnit(unit, e)}
+                                                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="border-t border-slate-100 p-2 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30">
+                                                {isAddingNewUnit ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            type="text"
+                                                            autoFocus
+                                                            value={newUnit}
+                                                            onChange={(e) => setNewUnit(e.target.value)}
+                                                            className="flex-1 rounded border border-teal-200 bg-white px-2 py-1 text-[10px] text-slate-900 outline-none focus:border-teal-500 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                                                            placeholder="New..."
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    e.preventDefault();
+                                                                    handleAddNewUnit();
+                                                                }
+                                                            }}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleAddNewUnit}
+                                                            disabled={addingUnitLoading}
+                                                            className="rounded bg-teal-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-teal-700"
+                                                        >
+                                                            Add
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAddingNewUnit(true)}
+                                                        className="flex w-full items-center justify-center gap-1 rounded py-1 text-[10px] font-medium text-teal-600 hover:bg-teal-50 dark:text-teal-400 dark:hover:bg-teal-900/30"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                                                        New Unit
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
 

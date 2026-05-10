@@ -23,8 +23,11 @@ model AccessGroup {
   groupId     String    @unique
   groupName   String
   description String?
-  users       User[]
-  patients    Patient[]
+  users         User[]
+  patients      Patient[]
+  medicines     Medicine[]
+  medicineTypes MedicineType[]
+  medicineUnits MedicineUnit[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -94,17 +97,33 @@ model PresentingComplain {
   updatedAt     DateTime @updatedAt
 }
 model Medicine {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  genericName String
-  brand       String
-  type        String
-  strength    Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String       @id @default(uuid())
+  code          String       @unique
+  genericName   String
+  brand         String
+  type          String
+  strength      Float
+  unit          String       @default("mg")
+  accessGroupId String?      // Changed to optional for migration
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
 model MedicineType {
-  id    String @id @default(uuid())
-  name  String @unique
+  id            String       @id @default(uuid())
+  name          String
+  accessGroupId String?
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+  
+  @@unique([name, accessGroupId])
+}
+
+model MedicineUnit {
+  id            String       @id @default(uuid())
+  name          String
+  accessGroupId String?
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+
+  @@unique([name, accessGroupId])
 }
