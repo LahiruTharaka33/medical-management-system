@@ -84,3 +84,42 @@ export async function deleteMedicine(id: string) {
         return { success: false, error: 'Failed to delete medicine' }
     }
 }
+
+export async function getMedicineTypes() {
+    try {
+        const types = await prisma.medicineType.findMany({
+            orderBy: { name: 'asc' },
+        })
+        return { success: true, data: types }
+    } catch (error) {
+        console.error('Error fetching medicine types:', error)
+        return { success: false, error: 'Failed to fetch medicine types' }
+    }
+}
+
+export async function createMedicineType(name: string) {
+    try {
+        const medicineType = await prisma.medicineType.create({
+            data: { name },
+        })
+        return { success: true, data: medicineType }
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return { success: false, error: 'This type already exists' }
+        }
+        console.error('Error creating medicine type:', error)
+        return { success: false, error: 'Failed to create type' }
+    }
+}
+
+export async function deleteMedicineType(name: string) {
+    try {
+        await prisma.medicineType.delete({
+            where: { name },
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Error deleting medicine type:', error)
+        return { success: false, error: 'Failed to delete type' }
+    }
+}

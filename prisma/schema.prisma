@@ -103,3 +103,8 @@ model Medicine {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model MedicineType {
+  id    String @id @default(uuid())
+  name  String @unique
+}
