@@ -176,7 +176,11 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Saved Records</h2>
                     <div className="space-y-6">
                         {savedLogs.map((log) => (
-                            <div key={log.id} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden">
+                            <div 
+                                key={log.id} 
+                                id={`record-${new Date(log.createdAt).getTime()}`}
+                                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden scroll-mt-24"
+                            >
                                 <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                         {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}

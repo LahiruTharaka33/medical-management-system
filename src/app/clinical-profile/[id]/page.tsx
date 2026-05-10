@@ -4,6 +4,8 @@ import { getPatientById } from "@/actions/patients";
 import { notFound, redirect } from "next/navigation";
 import Link from 'next/link';
 
+import PatientHistoryNavigator from '@/components/PatientHistoryNavigator';
+
 // Component Imports
 import PatientProfileHeader from '@/components/PatientProfileHeader';
 import ChronicIllnessForm from '@/components/ChronicIllnessForm';
@@ -106,10 +108,11 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                             />
                         </div>
 
-                        {/* Right Column - Notes/Other */}
+                        {/* Right Column - Patient History */}
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6 h-64 flex items-center justify-center text-slate-400">
-                                Notes Content Coming Soon...
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 p-6 max-h-[800px] flex flex-col">
+                                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-4">Patient History</h3>
+                                <PatientHistoryNavigator records={(patient as any).presentingComplains || []} />
                             </div>
                         </div>
                     </div>

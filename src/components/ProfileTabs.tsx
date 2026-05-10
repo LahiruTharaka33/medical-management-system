@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function ProfileTabs({ 
     presentingComplain, 
@@ -10,6 +10,17 @@ export default function ProfileTabs({
 }) {
     // Presenting Complain is the first tab, so default to it
     const [activeTab, setActiveTab] = useState('presentingComplain');
+
+    useEffect(() => {
+        const handleSwitchTab = (e: CustomEvent<{ tabId: string }>) => {
+            if (e.detail.tabId) {
+                setActiveTab(e.detail.tabId);
+            }
+        };
+
+        window.addEventListener('switch-tab' as any, handleSwitchTab as any);
+        return () => window.removeEventListener('switch-tab' as any, handleSwitchTab as any);
+    }, []);
 
     return (
         <div className="w-full">
