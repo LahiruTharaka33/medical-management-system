@@ -93,3 +93,13 @@ model PresentingComplain {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+model Medicine {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  genericName String
+  brand       String
+  type        String
+  strength    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
