@@ -15,6 +15,7 @@ type PresentingComplainLog = {
 
 export default function PresentingComplainForm({ patientId, savedLogs = [] }: { patientId: string, savedLogs?: PresentingComplainLog[] }) {
     const [isExpanded, setIsExpanded] = useState(false)
+    const [isPresentingExpanded, setIsPresentingExpanded] = useState(true)
     const [symptom, setSymptom] = useState('')
     const [examination, setExamination] = useState('')
     const [investigation, setInvestigation] = useState('')
@@ -74,7 +75,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-6 h-6 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                         </svg>
-                        Presenting Complain
+                        Patient Consultation
                     </button>
                 </div>
                 
@@ -82,7 +83,22 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     <form onSubmit={handleSave} className="space-y-6 fade-in-up">
                         {/* Combined Form Card */}
                         <div className="border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30 overflow-hidden">
-                            <div className="p-6 space-y-8">
+                            <div className="p-6">
+                                <div className={`flex items-center justify-between gap-4 ${isPresentingExpanded ? 'mb-6' : 'mb-0'}`}>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsPresentingExpanded(!isPresentingExpanded)} 
+                                        className="flex items-center gap-2 group transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 text-slate-400 group-hover:text-teal-600 transition-all duration-200 ${isPresentingExpanded ? 'rotate-180' : ''}`}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Presenting Complain</h3>
+                                    </button>
+                                </div>
+
+                                {isPresentingExpanded && (
+                                    <div className="space-y-8 fade-in-up">
                                 {/* Symptom Sub-section */}
                                 <div>
                                     <div className="flex items-center gap-6 mb-3">
@@ -154,6 +170,8 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                         />
                                     </div>
                                 </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
