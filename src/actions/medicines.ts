@@ -254,3 +254,60 @@ export async function deleteMedicineUnit(name: string) {
         return { success: false, error: 'Failed to delete unit' }
     }
 }
+
+export async function getDayPatterns() {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: true, data: [] }
+
+        const patterns = await prisma.dayPattern.findMany({
+            where: { accessGroupId: user.accessGroupId },
+            orderBy: { name: 'asc' },
+        })
+        return { success: true, data: patterns }
+    } catch (error) {
+        console.error('Error fetching day patterns:', error)
+        return { success: false, error: 'Failed to fetch day patterns' }
+    }
+}
+
+export async function createDayPattern(name: string) {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
+        const pattern = await prisma.dayPattern.create({
+            data: { 
+                name,
+                accessGroupId: user.accessGroupId,
+            },
+        })
+        return { success: true, data: pattern }
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return { success: false, error: 'This pattern already exists' }
+        }
+        console.error('Error creating day pattern:', error)
+        return { success: false, error: 'Failed to create pattern' }
+    }
+}
+
+export async function deleteDayPattern(name: string) {
+    try {
+        const user = await getCurrentUser()
+        if (!user.accessGroupId) return { success: false, error: 'Unauthorized' }
+
+        await prisma.dayPattern.delete({
+            where: { 
+                name_accessGroupId: {
+                    name,
+                    accessGroupId: user.accessGroupId
+                }
+            },
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Error deleting day pattern:', error)
+        return { success: false, error: 'Failed to delete pattern' }
+    }
+}

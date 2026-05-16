@@ -28,6 +28,7 @@ model AccessGroup {
   medicines     Medicine[]
   medicineTypes MedicineType[]
   medicineUnits MedicineUnit[]
+  dayPatterns   DayPattern[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -93,9 +94,23 @@ model PresentingComplain {
   examination   String?
   investigation String?
   diagnose      String?
+  prescriptions Prescription[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Prescription {
+  id                   String             @id @default(cuid())
+  medicineId           String
+  medicine             Medicine           @relation(fields: [medicineId], references: [id])
+  dosage               String
+  dayPattern           String
+  presentingComplainId String
+  presentingComplain   PresentingComplain @relation(fields: [presentingComplainId], references: [id], onDelete: Cascade)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
 model Medicine {
   id            String       @id @default(uuid())
   code          String       @unique
@@ -106,6 +121,7 @@ model Medicine {
   unit          String       @default("mg")
   accessGroupId String?      // Changed to optional for migration
   accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+  prescriptions Prescription[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -127,3 +143,13 @@ model MedicineUnit {
 
   @@unique([name, accessGroupId])
 }
+
+model DayPattern {
+  id            String       @id @default(uuid())
+  name          String
+  accessGroupId String?
+  accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
+
+  @@unique([name, accessGroupId])
+}
+

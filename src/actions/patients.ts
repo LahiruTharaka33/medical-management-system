@@ -329,6 +329,11 @@ export async function savePresentingComplain(patientId: string, data: {
     examination: string | null,
     investigation: string | null,
     diagnose: string | null,
+    prescriptions?: {
+        medicineId: string;
+        dosage: string;
+        dayPattern: string;
+    }[]
 }) {
     try {
         const user = await getCurrentUser()
@@ -348,18 +353,25 @@ export async function savePresentingComplain(patientId: string, data: {
             return { success: false, error: 'Unauthorized access to this patient' }
         }
 
-        await prisma.presentingComplain.create({
+        const result = await prisma.presentingComplain.create({
             data: {
                 patientId,
                 symptom: data.symptom,
                 examination: data.examination,
                 investigation: data.investigation,
                 diagnose: data.diagnose,
+                prescriptions: data.prescriptions && data.prescriptions.length > 0 ? {
+                    create: data.prescriptions.map(p => ({
+                        medicineId: p.medicineId,
+                        dosage: p.dosage,
+                        dayPattern: p.dayPattern,
+                    }))
+                } : undefined
             }
         })
         
         revalidatePath(`/clinical-profile/${patientId}`)
-        return { success: true }
+        return { success: true, data: result }
     } catch (error) {
         console.error('Failed to save presenting complain:', error)
         return { success: false, error: 'Failed to save data' }
