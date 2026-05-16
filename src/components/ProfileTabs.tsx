@@ -40,8 +40,12 @@ export default function ProfileTabs({
             </div>
             
             <div className="fade-in-up">
-                {activeTab === 'presentingComplain' && presentingComplain}
-                {activeTab === 'chronicIllness' && chronicIllness}
+                <div className={activeTab === 'presentingComplain' ? 'block' : 'hidden'}>
+                    {presentingComplain}
+                </div>
+                <div className={activeTab === 'chronicIllness' ? 'block' : 'hidden'}>
+                    {chronicIllness}
+                </div>
             </div>
         </div>
     );

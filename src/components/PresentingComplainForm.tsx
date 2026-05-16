@@ -66,6 +66,45 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
         fetchData()
     }, [])
 
+    // Load draft from localStorage on mount
+    useEffect(() => {
+        const savedDraft = localStorage.getItem(`consultation_draft_${patientId}`)
+        if (savedDraft && !editingRecordId) {
+            try {
+                const draft = JSON.parse(savedDraft)
+                setSymptom(draft.symptom || '')
+                setExamination(draft.examination || '')
+                setInvestigation(draft.investigation || '')
+                setDiagnose(draft.diagnose || '')
+                setNumberOfDays(draft.numberOfDays || '')
+                setPrescriptions(draft.prescriptions || [])
+                
+                // If there's content, expand the form
+                if (draft.symptom || draft.examination || draft.investigation || draft.diagnose || (draft.prescriptions && draft.prescriptions.length > 0)) {
+                    setIsExpanded(true)
+                }
+            } catch (e) {
+                console.error('Failed to parse draft', e)
+            }
+        }
+    }, [patientId, editingRecordId])
+
+    // Save draft to localStorage on change
+    useEffect(() => {
+        // Only save as draft if we are NOT in edit mode
+        if (!editingRecordId) {
+            const draft = {
+                symptom,
+                examination,
+                investigation,
+                diagnose,
+                numberOfDays,
+                prescriptions
+            }
+            localStorage.setItem(`consultation_draft_${patientId}`, JSON.stringify(draft))
+        }
+    }, [symptom, examination, investigation, diagnose, numberOfDays, prescriptions, patientId, editingRecordId])
+
     const handleAddMedicine = () => {
         setPrescriptions([...prescriptions, { id: Math.random().toString(36).substr(2, 9), medicineId: '', dosage: '', dayPattern: 'n' }])
     }
@@ -129,6 +168,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
             setDiagnose('')
             setNumberOfDays('')
             setPrescriptions([])
+            localStorage.removeItem(`consultation_draft_${patientId}`)
             router.refresh()
             
             // Clear success message after 3 seconds
