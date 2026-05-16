@@ -181,6 +181,13 @@ export async function getPatientById(id: string) {
             include: { 
                 chronicIllnessProfile: true,
                 presentingComplains: {
+                    include: {
+                        prescriptions: {
+                            include: {
+                                medicine: true
+                            }
+                        }
+                    },
                     orderBy: { createdAt: 'desc' }
                 }
             },

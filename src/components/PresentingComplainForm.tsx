@@ -12,6 +12,12 @@ type PresentingComplainLog = {
     examination: string | null;
     investigation: string | null;
     diagnose: string | null;
+    prescriptions?: {
+        id: string;
+        medicine: MedicineData;
+        dosage: string;
+        dayPattern: string;
+    }[];
 }
 
 export default function PresentingComplainForm({ patientId, savedLogs = [] }: { patientId: string, savedLogs?: PresentingComplainLog[] }) {
@@ -335,47 +341,111 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Saved Records</h2>
                     <div className="space-y-6">
                         {savedLogs.map((log) => (
-                            <div 
-                                key={log.id} 
-                                id={`record-${new Date(log.createdAt).getTime()}`}
-                                className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden scroll-mt-24"
-                            >
-                                <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
-                                    </span>
-                                </div>
-                                <div className="p-5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Symptom</h4>
-                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.symptom || '—'}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Examination</h4>
-                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.examination || '—'}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Investigation</h4>
-                                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.investigation || '—'}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Diagnose</h4>
-                                            {log.diagnose ? (
-                                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                                    {log.diagnose}
-                                                </span>
-                                            ) : (
-                                                <p className="text-sm text-slate-800 dark:text-slate-200">—</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <SavedRecordCard key={log.id} log={log} />
                         ))}
                     </div>
                 </div>
             )}
+        </div>
+    )
+}
+
+function SavedRecordCard({ log }: { log: PresentingComplainLog }) {
+    const [activeTab, setActiveTab] = useState<'consultation' | 'medicine'>('consultation')
+    const hasPrescriptions = log.prescriptions && log.prescriptions.length > 0
+
+    return (
+        <div 
+            id={`record-${new Date(log.createdAt).getTime()}`}
+            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden scroll-mt-24"
+        >
+            <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center gap-8">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
+                </span>
+                
+                {/* Mini Tabs */}
+                <div className="flex space-x-6">
+                    <button
+                        onClick={() => setActiveTab('consultation')}
+                        className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'consultation' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                    >
+                        Consultation
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('medicine')}
+                        className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'medicine' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                    >
+                        Prescription {hasPrescriptions ? `(${log.prescriptions?.length})` : ''}
+                    </button>
+                </div>
+            </div>
+
+            <div className="p-5">
+                {activeTab === 'consultation' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 fade-in-up">
+                        <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Symptom</h4>
+                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.symptom || '—'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Examination</h4>
+                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.examination || '—'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Investigation</h4>
+                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{log.investigation || '—'}</p>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Diagnose</h4>
+                            {log.diagnose ? (
+                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                    {log.diagnose}
+                                </span>
+                            ) : (
+                                <p className="text-sm text-slate-800 dark:text-slate-200">—</p>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="fade-in-up">
+                        {!hasPrescriptions ? (
+                            <div className="text-center py-6">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">No medicines prescribed in this consultation.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700/50">
+                                            <th className="pb-2 px-2">Medicine</th>
+                                            <th className="pb-2 px-2">Dosage</th>
+                                            <th className="pb-2 px-2">Day Pattern</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-700/30">
+                                        {log.prescriptions?.map((p) => (
+                                            <tr key={p.id} className="text-sm">
+                                                <td className="py-1.5 px-2">
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-200">{p.medicine.genericName}</span>
+                                                </td>
+                                                <td className="py-1.5 px-2 text-slate-600 dark:text-slate-300">
+                                                    {p.dosage} <span className="text-xs opacity-70">{p.medicine.unit}</span>
+                                                </td>
+                                                <td className="py-1.5 px-2">
+                                                    <span className="inline-flex items-center rounded bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 dark:bg-teal-900/30 dark:text-teal-400">
+                                                        {p.dayPattern}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
