@@ -12,6 +12,7 @@ type PresentingComplainLog = {
     examination: string | null;
     investigation: string | null;
     diagnose: string | null;
+    numberOfDays: number | null;
     prescriptions?: {
         id: string;
         medicine: MedicineData;
@@ -36,6 +37,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
     // Prescription States
     const [isPrescriptionExpanded, setIsPrescriptionExpanded] = useState(true)
     const [prescriptions, setPrescriptions] = useState<{ id: string, medicineId: string, dosage: string, dayPattern: string }[]>([])
+    const [numberOfDays, setNumberOfDays] = useState('')
     const [availableMedicines, setAvailableMedicines] = useState<MedicineData[]>([])
     const [availablePatterns, setAvailablePatterns] = useState<string[]>([])
     const [isAddingNewPattern, setIsAddingNewPattern] = useState(false)
@@ -99,6 +101,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
             examination: examination.trim() || null,
             investigation: investigation.trim() || null,
             diagnose: diagnose.trim() || null,
+            numberOfDays: numberOfDays ? parseInt(numberOfDays) : null,
             prescriptions: prescriptions.filter(p => p.medicineId).map(p => ({
                 medicineId: p.medicineId,
                 dosage: p.dosage,
@@ -113,6 +116,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
             setExamination('')
             setInvestigation('')
             setDiagnose('')
+            setNumberOfDays('')
             setPrescriptions([])
             router.refresh()
             
@@ -312,6 +316,25 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                                 </table>
                                             </div>
                                         )}
+
+                                        {/* Prescription Footer / Duration */}
+                                        {prescriptions.length > 0 && (
+                                            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex justify-end items-center gap-3">
+                                                <label htmlFor="numberOfDays" className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                    Duration (Days):
+                                                </label>
+                                                <div className="relative w-24">
+                                                    <input
+                                                        type="text"
+                                                        id="numberOfDays"
+                                                        value={numberOfDays}
+                                                        onChange={(e) => setNumberOfDays(e.target.value)}
+                                                        className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm dark:bg-slate-900 dark:text-white dark:ring-slate-700 h-[38px]"
+                                                        placeholder="0"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -363,6 +386,12 @@ function SavedRecordCard({ log }: { log: PresentingComplainLog }) {
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
                 </span>
+                
+                {log.numberOfDays && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        {log.numberOfDays} Days Course
+                    </span>
+                )}
                 
                 {/* Mini Tabs */}
                 <div className="flex space-x-6">

@@ -94,6 +94,7 @@ model PresentingComplain {
   examination   String?
   investigation String?
   diagnose      String?
+  numberOfDays  Int?
   prescriptions Prescription[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

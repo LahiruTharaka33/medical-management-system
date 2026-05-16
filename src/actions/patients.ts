@@ -336,6 +336,7 @@ export async function savePresentingComplain(patientId: string, data: {
     examination: string | null,
     investigation: string | null,
     diagnose: string | null,
+    numberOfDays?: number | null,
     prescriptions?: {
         medicineId: string;
         dosage: string;
@@ -367,6 +368,7 @@ export async function savePresentingComplain(patientId: string, data: {
                 examination: data.examination,
                 investigation: data.investigation,
                 diagnose: data.diagnose,
+                numberOfDays: data.numberOfDays,
                 prescriptions: data.prescriptions && data.prescriptions.length > 0 ? {
                     create: data.prescriptions.map(p => ({
                         medicineId: p.medicineId,
