@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { savePresentingComplain } from '@/actions/patients'
+import { savePresentingComplain, updatePresentingComplain } from '@/actions/patients'
 import { getMedicines, MedicineData, getDayPatterns, createDayPattern } from '@/actions/medicines'
 
 type PresentingComplainLog = {
@@ -32,6 +32,10 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
     const [isSaving, setIsSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
+    
+    // Edit States
+    const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
+    const [originalData, setOriginalData] = useState<any>(null)
     const router = useRouter()
 
     // Prescription States
@@ -90,13 +94,11 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!hasContent) return
-
         setIsSaving(true)
         setMessage('')
         setError('')
 
-        const result = await savePresentingComplain(patientId, {
+        const data = {
             symptom: symptom.trim() || null,
             examination: examination.trim() || null,
             investigation: investigation.trim() || null,
@@ -107,11 +109,20 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                 dosage: p.dosage,
                 dayPattern: p.dayPattern
             }))
-        })
+        }
+
+        let result;
+        if (editingRecordId) {
+            result = await updatePresentingComplain(editingRecordId, data)
+        } else {
+            result = await savePresentingComplain(patientId, data)
+        }
 
         if (result.success) {
-            setMessage('Presenting complain log saved successfully.')
+            setMessage(editingRecordId ? 'Record updated successfully.' : 'Record saved successfully.')
             // Clear out fields for the next entry
+            setEditingRecordId(null)
+            setOriginalData(null)
             setSymptom('')
             setExamination('')
             setInvestigation('')
@@ -125,9 +136,76 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                 setMessage('')
             }, 3000)
         } else {
-            setError(result.error || 'Failed to save presenting complain data')
+            setError(result.error || 'Failed to process request')
         }
         setIsSaving(false)
+    }
+
+    const handleEdit = (log: PresentingComplainLog) => {
+        setEditingRecordId(log.id)
+        
+        // Populate form
+        setSymptom(log.symptom || '')
+        setExamination(log.examination || '')
+        setInvestigation(log.investigation || '')
+        setDiagnose(log.diagnose || '')
+        setNumberOfDays(log.numberOfDays ? String(log.numberOfDays) : '')
+        
+        const mappedPrescriptions = log.prescriptions?.map(p => ({
+            id: p.id,
+            medicineId: p.medicine.id,
+            dosage: p.dosage,
+            dayPattern: p.dayPattern
+        })) || []
+        
+        setPrescriptions(mappedPrescriptions)
+        
+        // Set original data for comparison
+        setOriginalData({
+            symptom: log.symptom || '',
+            examination: log.examination || '',
+            investigation: log.investigation || '',
+            diagnose: log.diagnose || '',
+            numberOfDays: log.numberOfDays ? String(log.numberOfDays) : '',
+            prescriptions: mappedPrescriptions
+        })
+
+        // Expand form and scroll to top
+        setIsExpanded(true)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const handleCancelEdit = () => {
+        setEditingRecordId(null)
+        setOriginalData(null)
+        setSymptom('')
+        setExamination('')
+        setInvestigation('')
+        setDiagnose('')
+        setNumberOfDays('')
+        setPrescriptions([])
+    }
+
+    // Check for changes to enable/disable button
+    const hasChanges = () => {
+        if (!editingRecordId) {
+            // In create mode, enable if anything is filled
+            return symptom.trim() !== '' || examination.trim() !== '' || investigation.trim() !== '' || diagnose.trim() !== '' || prescriptions.length > 0 || numberOfDays !== ''
+        }
+        
+        if (!originalData) return false
+        
+        // Compare with original data
+        const isSymptomChanged = symptom.trim() !== originalData.symptom
+        const isExaminationChanged = examination.trim() !== originalData.examination
+        const isInvestigationChanged = investigation.trim() !== originalData.investigation
+        const isDiagnoseChanged = diagnose.trim() !== originalData.diagnose
+        const isDaysChanged = numberOfDays !== originalData.numberOfDays
+        
+        // Prescription comparison
+        const isPrescriptionsChanged = JSON.stringify(prescriptions) !== JSON.stringify(originalData.prescriptions)
+        
+        return isSymptomChanged || isExaminationChanged || isInvestigationChanged || isDiagnoseChanged || isDaysChanged || isPrescriptionsChanged
     }
 
     return (
@@ -346,13 +424,24 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     {message && <span className="text-teal-600 dark:text-teal-400 font-medium mr-4">{message}</span>}
                     {error && <span className="text-rose-600 dark:text-rose-400 font-medium mr-4">{error}</span>}
                 </div>
-                <button
-                    type="submit"
-                    disabled={isSaving || !hasContent}
-                    className="inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 bg-teal-600 text-white hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:bg-slate-200 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-slate-800 dark:disabled:text-slate-500 dark:disabled:hover:bg-slate-800"
-                >
-                    {isSaving ? 'Saving...' : 'Save Data'}
-                </button>
+                <div className="flex gap-3">
+                    {editingRecordId && (
+                        <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                        >
+                            Cancel Edit
+                        </button>
+                    )}
+                    <button
+                        type="submit"
+                        disabled={isSaving || !hasChanges()}
+                        className="inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 bg-teal-600 text-white hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:bg-slate-200 disabled:cursor-not-allowed disabled:shadow-none dark:disabled:bg-slate-800 dark:disabled:text-slate-500 dark:disabled:hover:bg-slate-800"
+                    >
+                        {isSaving ? (editingRecordId ? 'Updating...' : 'Saving...') : (editingRecordId ? 'Update Data' : 'Save Data')}
+                    </button>
+                </div>
             </div>
         </form>
                 )}
@@ -364,7 +453,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Saved Records</h2>
                     <div className="space-y-6">
                         {savedLogs.map((log) => (
-                            <SavedRecordCard key={log.id} log={log} />
+                            <SavedRecordCard key={log.id} log={log} onEdit={() => handleEdit(log)} />
                         ))}
                     </div>
                 </div>
@@ -373,7 +462,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
     )
 }
 
-function SavedRecordCard({ log }: { log: PresentingComplainLog }) {
+function SavedRecordCard({ log, onEdit }: { log: PresentingComplainLog, onEdit: () => void }) {
     const [activeTab, setActiveTab] = useState<'consultation' | 'medicine'>('consultation')
     const hasPrescriptions = log.prescriptions && log.prescriptions.length > 0
 
@@ -382,30 +471,45 @@ function SavedRecordCard({ log }: { log: PresentingComplainLog }) {
             id={`record-${new Date(log.createdAt).getTime()}`}
             className="bg-white dark:bg-slate-800 rounded-xl shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden scroll-mt-24"
         >
-            <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center gap-8">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
-                </span>
-                
-                {log.numberOfDays && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                        {log.numberOfDays} Days Course
+            <div className="bg-slate-50 dark:bg-slate-800/80 px-5 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(log.createdAt))}
                     </span>
-                )}
-                
-                {/* Mini Tabs */}
-                <div className="flex space-x-6">
+                    
+                    {log.numberOfDays && (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                            {log.numberOfDays} Days Course
+                        </span>
+                    )}
+                    
+                    {/* Mini Tabs */}
+                    <div className="flex space-x-6">
+                        <button
+                            onClick={() => setActiveTab('consultation')}
+                            className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'consultation' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                        >
+                            Consultation
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('medicine')}
+                            className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'medicine' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                        >
+                            Prescription {hasPrescriptions ? `(${log.prescriptions?.length})` : ''}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
                     <button
-                        onClick={() => setActiveTab('consultation')}
-                        className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'consultation' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                        type="button"
+                        onClick={onEdit}
+                        className="p-1.5 text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-all"
+                        title="Edit Record"
                     >
-                        Consultation
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('medicine')}
-                        className={`text-sm font-medium pb-1 border-b-2 transition-colors ${activeTab === 'medicine' ? 'border-teal-600 text-teal-600 dark:border-teal-500 dark:text-teal-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
-                    >
-                        Prescription {hasPrescriptions ? `(${log.prescriptions?.length})` : ''}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                        </svg>
                     </button>
                 </div>
             </div>

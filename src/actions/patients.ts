@@ -386,3 +386,69 @@ export async function savePresentingComplain(patientId: string, data: {
         return { success: false, error: 'Failed to save data' }
     }
 }
+
+export async function updatePresentingComplain(complainId: string, data: {
+    symptom: string | null,
+    examination: string | null,
+    investigation: string | null,
+    diagnose: string | null,
+    numberOfDays?: number | null,
+    prescriptions?: {
+        medicineId: string;
+        dosage: string;
+        dayPattern: string;
+    }[]
+}) {
+    try {
+        const user = await getCurrentUser()
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const existingComplain = await prisma.presentingComplain.findUnique({
+            where: { id: complainId },
+            include: { patient: true }
+        })
+
+        if (!existingComplain) {
+            return { success: false, error: 'Record not found' }
+        }
+
+        if (user.role !== 'ADMIN' && existingComplain.patient.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Unauthorized access' }
+        }
+
+        // Use transaction to ensure atomic update of complain and prescriptions
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Delete all existing prescriptions for this complain
+            await tx.prescription.deleteMany({
+                where: { presentingComplainId: complainId }
+            })
+
+            // 2. Update the main complain record and create new prescriptions
+            return await tx.presentingComplain.update({
+                where: { id: complainId },
+                data: {
+                    symptom: data.symptom,
+                    examination: data.examination,
+                    investigation: data.investigation,
+                    diagnose: data.diagnose,
+                    numberOfDays: data.numberOfDays,
+                    prescriptions: data.prescriptions && data.prescriptions.length > 0 ? {
+                        create: data.prescriptions.map(p => ({
+                            medicineId: p.medicineId,
+                            dosage: p.dosage,
+                            dayPattern: p.dayPattern,
+                        }))
+                    } : undefined
+                }
+            })
+        })
+
+        revalidatePath(`/clinical-profile/${existingComplain.patientId}`)
+        return { success: true, data: result }
+    } catch (error) {
+        console.error('Failed to update presenting complain:', error)
+        return { success: false, error: 'Failed to update data' }
+    }
+}
