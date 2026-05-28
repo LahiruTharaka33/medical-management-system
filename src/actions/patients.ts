@@ -28,6 +28,7 @@ async function getCurrentUser() {
         select: {
             id: true,
             accessGroupId: true,
+            role: true,
         },
     })
 
@@ -180,6 +181,9 @@ export async function getPatientById(id: string) {
             where: { id },
             include: { 
                 chronicIllnessProfile: true,
+                chronicIllnessHistories: {
+                    orderBy: { createdAt: 'desc' }
+                },
                 presentingComplains: {
                     include: {
                         prescriptions: {
@@ -261,73 +265,152 @@ export async function saveChronicIllnesses(patientId: string, data: {
         const assessOfComplicationsChanged = !existingProfile || existingProfile.assessOfComplicationsText !== data.assessOfComplicationsText
         const otherChronicIllnessesChanged = !existingProfile || existingProfile.otherChronicIllnessesText !== data.otherChronicIllnessesText
 
-        const profile = await prisma.chronicIllnessProfile.upsert({
-            where: { patientId },
-            update: {
-                fbs: data.fbs,
-                hba1c: data.hba1c,
-                bloodPressure: data.bloodPressure,
-                totalCholesterol: data.totalCholesterol,
-                triglycerides: data.triglycerides,
-                hdl: data.hdl,
-                ldl: data.ldl,
-                diabetesOnSet: data.diabetesOnSet,
-                diabetesIsOnDrugs: data.diabetesIsOnDrugs,
-                diabetesDrugsText: data.diabetesDrugsText,
-                diabetesSugarControl: data.diabetesSugarControl,
-                diabetesComplications: data.diabetesComplications,
-                htnOnSet: data.htnOnSet,
-                htnIsOnDrugs: data.htnIsOnDrugs,
-                htnDrugsText: data.htnDrugsText,
-                dyslipidemiaOnSet: data.dyslipidemiaOnSet,
-                dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
-                dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
-                dietAndLifestyleText: data.dietAndLifestyleText,
-                assessOfComplicationsText: data.assessOfComplicationsText,
-                otherChronicIllnessesText: data.otherChronicIllnessesText,
-                diabetesUpdatedAt: diabetesChanged ? now : existingProfile?.diabetesUpdatedAt,
-                htnUpdatedAt: htnChanged ? now : existingProfile?.htnUpdatedAt,
-                dyslipidemiaUpdatedAt: dyslipidemiaChanged ? now : existingProfile?.dyslipidemiaUpdatedAt,
-                dietAndLifestyleUpdatedAt: dietAndLifestyleChanged ? now : existingProfile?.dietAndLifestyleUpdatedAt,
-                assessOfComplicationsUpdatedAt: assessOfComplicationsChanged ? now : existingProfile?.assessOfComplicationsUpdatedAt,
-                otherChronicIllnessesUpdatedAt: otherChronicIllnessesChanged ? now : existingProfile?.otherChronicIllnessesUpdatedAt,
-            },
-            create: {
-                patientId,
-                fbs: data.fbs,
-                hba1c: data.hba1c,
-                bloodPressure: data.bloodPressure,
-                totalCholesterol: data.totalCholesterol,
-                triglycerides: data.triglycerides,
-                hdl: data.hdl,
-                ldl: data.ldl,
-                diabetesOnSet: data.diabetesOnSet,
-                diabetesIsOnDrugs: data.diabetesIsOnDrugs,
-                diabetesDrugsText: data.diabetesDrugsText,
-                diabetesSugarControl: data.diabetesSugarControl,
-                diabetesComplications: data.diabetesComplications,
-                htnOnSet: data.htnOnSet,
-                htnIsOnDrugs: data.htnIsOnDrugs,
-                htnDrugsText: data.htnDrugsText,
-                dyslipidemiaOnSet: data.dyslipidemiaOnSet,
-                dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
-                dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
-                dietAndLifestyleText: data.dietAndLifestyleText,
-                assessOfComplicationsText: data.assessOfComplicationsText,
-                otherChronicIllnessesText: data.otherChronicIllnessesText,
-                diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null || data.diabetesOnSet !== null || data.diabetesIsOnDrugs || data.diabetesDrugsText !== null || data.diabetesSugarControl || data.diabetesComplications !== null) ? now : null,
-                htnUpdatedAt: ((data.bloodPressure && data.bloodPressure.trim() !== '') || data.htnOnSet !== null || data.htnIsOnDrugs || data.htnDrugsText !== null) ? now : null,
-                dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null || data.dyslipidemiaOnSet !== null || data.dyslipidemiaIsOnDrugs || data.dyslipidemiaDrugsText !== null) ? now : null,
-                dietAndLifestyleUpdatedAt: (data.dietAndLifestyleText !== null && data.dietAndLifestyleText.trim() !== '') ? now : null,
-                assessOfComplicationsUpdatedAt: (data.assessOfComplicationsText !== null && data.assessOfComplicationsText.trim() !== '') ? now : null,
-                otherChronicIllnessesUpdatedAt: (data.otherChronicIllnessesText !== null && data.otherChronicIllnessesText.trim() !== '') ? now : null,
+        // Compare values to compile history logs
+        const logsToCreate: {
+            patientId: string;
+            section: string;
+            field: string;
+            oldValue: string | null;
+            newValue: string | null;
+        }[] = []
+
+        const checkChange = (section: string, field: string, oldVal: any, newVal: any, unit: string = '') => {
+            const normOld = oldVal === null || oldVal === undefined ? '' : String(oldVal).trim();
+            const normNew = newVal === null || newVal === undefined ? '' : String(newVal).trim();
+
+            if (normOld !== normNew) {
+                const oldValueStr = normOld ? `${normOld}${unit ? ' ' + unit : ''}` : '-';
+                const newValueStr = normNew ? `${normNew}${unit ? ' ' + unit : ''}` : '-';
+                logsToCreate.push({
+                    patientId,
+                    section,
+                    field,
+                    oldValue: oldValueStr,
+                    newValue: newValueStr
+                })
             }
+        }
+
+        checkChange('DIABETES', 'Fasting Blood Sugar', existingProfile?.fbs, data.fbs, 'mg/dL')
+        checkChange('DIABETES', 'HbA1c', existingProfile?.hba1c, data.hba1c, '%')
+        checkChange('HTN', 'Blood Pressure', existingProfile?.bloodPressure, data.bloodPressure, 'mmHg')
+        checkChange('DYSLIPIDEMIA', 'Total Cholesterol', existingProfile?.totalCholesterol, data.totalCholesterol, 'mg/dL')
+        checkChange('DYSLIPIDEMIA', 'Triglycerides', existingProfile?.triglycerides, data.triglycerides, 'mg/dL')
+        checkChange('DYSLIPIDEMIA', 'HDL', existingProfile?.hdl, data.hdl, 'mg/dL')
+        checkChange('DYSLIPIDEMIA', 'LDL', existingProfile?.ldl, data.ldl, 'mg/dL')
+        checkChange('DIET_LIFESTYLE', 'Diet and Life Style', existingProfile?.dietAndLifestyleText, data.dietAndLifestyleText)
+        checkChange('ASSESS_COMPLICATIONS', 'Assess of Complications', existingProfile?.assessOfComplicationsText, data.assessOfComplicationsText)
+        checkChange('OTHER_CHRONIC_ILLNESSES', 'Other Chronic Illnesses', existingProfile?.otherChronicIllnessesText, data.otherChronicIllnessesText)
+
+        const profile = await prisma.$transaction(async (tx) => {
+            const upserted = await tx.chronicIllnessProfile.upsert({
+                where: { patientId },
+                update: {
+                    fbs: data.fbs,
+                    hba1c: data.hba1c,
+                    bloodPressure: data.bloodPressure,
+                    totalCholesterol: data.totalCholesterol,
+                    triglycerides: data.triglycerides,
+                    hdl: data.hdl,
+                    ldl: data.ldl,
+                    diabetesOnSet: data.diabetesOnSet,
+                    diabetesIsOnDrugs: data.diabetesIsOnDrugs,
+                    diabetesDrugsText: data.diabetesDrugsText,
+                    diabetesSugarControl: data.diabetesSugarControl,
+                    diabetesComplications: data.diabetesComplications,
+                    htnOnSet: data.htnOnSet,
+                    htnIsOnDrugs: data.htnIsOnDrugs,
+                    htnDrugsText: data.htnDrugsText,
+                    dyslipidemiaOnSet: data.dyslipidemiaOnSet,
+                    dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
+                    dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
+                    dietAndLifestyleText: data.dietAndLifestyleText,
+                    assessOfComplicationsText: data.assessOfComplicationsText,
+                    otherChronicIllnessesText: data.otherChronicIllnessesText,
+                    diabetesUpdatedAt: diabetesChanged ? now : existingProfile?.diabetesUpdatedAt,
+                    htnUpdatedAt: htnChanged ? now : existingProfile?.htnUpdatedAt,
+                    dyslipidemiaUpdatedAt: dyslipidemiaChanged ? now : existingProfile?.dyslipidemiaUpdatedAt,
+                    dietAndLifestyleUpdatedAt: dietAndLifestyleChanged ? now : existingProfile?.dietAndLifestyleUpdatedAt,
+                    assessOfComplicationsUpdatedAt: assessOfComplicationsChanged ? now : existingProfile?.assessOfComplicationsUpdatedAt,
+                    otherChronicIllnessesUpdatedAt: otherChronicIllnessesChanged ? now : existingProfile?.otherChronicIllnessesUpdatedAt,
+                },
+                create: {
+                    patientId,
+                    fbs: data.fbs,
+                    hba1c: data.hba1c,
+                    bloodPressure: data.bloodPressure,
+                    totalCholesterol: data.totalCholesterol,
+                    triglycerides: data.triglycerides,
+                    hdl: data.hdl,
+                    ldl: data.ldl,
+                    diabetesOnSet: data.diabetesOnSet,
+                    diabetesIsOnDrugs: data.diabetesIsOnDrugs,
+                    diabetesDrugsText: data.diabetesDrugsText,
+                    diabetesSugarControl: data.diabetesSugarControl,
+                    diabetesComplications: data.diabetesComplications,
+                    htnOnSet: data.htnOnSet,
+                    htnIsOnDrugs: data.htnIsOnDrugs,
+                    htnDrugsText: data.htnDrugsText,
+                    dyslipidemiaOnSet: data.dyslipidemiaOnSet,
+                    dyslipidemiaIsOnDrugs: data.dyslipidemiaIsOnDrugs,
+                    dyslipidemiaDrugsText: data.dyslipidemiaDrugsText,
+                    dietAndLifestyleText: data.dietAndLifestyleText,
+                    assessOfComplicationsText: data.assessOfComplicationsText,
+                    otherChronicIllnessesText: data.otherChronicIllnessesText,
+                    diabetesUpdatedAt: (data.fbs !== null || data.hba1c !== null || data.diabetesOnSet !== null || data.diabetesIsOnDrugs || data.diabetesDrugsText !== null || data.diabetesSugarControl || data.diabetesComplications !== null) ? now : null,
+                    htnUpdatedAt: ((data.bloodPressure && data.bloodPressure.trim() !== '') || data.htnOnSet !== null || data.htnIsOnDrugs || data.htnDrugsText !== null) ? now : null,
+                    dyslipidemiaUpdatedAt: (data.totalCholesterol !== null || data.triglycerides !== null || data.hdl !== null || data.ldl !== null || data.dyslipidemiaOnSet !== null || data.dyslipidemiaIsOnDrugs || data.dyslipidemiaDrugsText !== null) ? now : null,
+                    dietAndLifestyleUpdatedAt: (data.dietAndLifestyleText !== null && data.dietAndLifestyleText.trim() !== '') ? now : null,
+                    assessOfComplicationsUpdatedAt: (data.assessOfComplicationsText !== null && data.assessOfComplicationsText.trim() !== '') ? now : null,
+                    otherChronicIllnessesUpdatedAt: (data.otherChronicIllnessesText !== null && data.otherChronicIllnessesText.trim() !== '') ? now : null,
+                }
+            })
+
+            if (logsToCreate.length > 0) {
+                await tx.chronicIllnessHistory.createMany({
+                    data: logsToCreate
+                })
+            }
+
+            return upserted
         })
+
         revalidatePath(`/clinical-profile/${patientId}`)
         return { success: true, data: profile }
     } catch (error) {
         console.error('Error saving diabetes profile:', error)
         return { success: false, error: 'Failed to save diabetes profile' }
+    }
+}
+
+export async function getChronicIllnessHistory(patientId: string, section?: string) {
+    try {
+        const user = await getCurrentUser()
+
+        if (!user.accessGroupId) {
+            return { success: false, error: 'You do not have permission to view patients.' }
+        }
+
+        const patient = await prisma.patient.findUnique({
+            where: { id: patientId },
+        })
+
+        if (!patient || patient.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Patient not found or access denied.' }
+        }
+
+        const history = await prisma.chronicIllnessHistory.findMany({
+            where: {
+                patientId,
+                ...(section ? { section } : {})
+            },
+            orderBy: { createdAt: 'desc' }
+        })
+
+        return { success: true, data: history }
+    } catch (error) {
+        console.error('Error fetching chronic illness history:', error)
+        return { success: false, error: 'Failed to fetch chronic illness history' }
     }
 }
 

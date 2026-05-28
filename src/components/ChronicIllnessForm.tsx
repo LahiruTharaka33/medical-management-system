@@ -3,6 +3,70 @@
 import React, { useState } from 'react'
 import { saveChronicIllnesses } from '@/actions/patients'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+
+type HistoryLog = {
+    id: string
+    patientId: string
+    section: string
+    field: string
+    oldValue: string | null
+    newValue: string | null
+    createdAt: Date
+}
+
+const HistoryIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+)
+
+const HistoryLogView = ({ logs, sectionKey, patientId }: { logs: HistoryLog[], sectionKey: string, patientId: string }) => {
+    if (!logs || logs.length === 0) {
+        return (
+            <div className="text-sm text-slate-400 dark:text-slate-500 italic py-6 text-center">
+                No history logs recorded yet.
+            </div>
+        )
+    }
+
+    const displayedLogs = logs.slice(0, 5)
+
+    return (
+        <div className="space-y-1">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {displayedLogs.map((log) => (
+                    <div key={log.id} className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center py-1.5 first:pt-0 last:pb-0 text-sm gap-1.5">
+                        <div className="flex items-center flex-wrap gap-1.5">
+                            <span className="font-medium text-slate-800 dark:text-slate-200">{log.field}</span>
+                            <span className="text-slate-500 dark:text-slate-400 line-through text-xs bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded max-w-[200px] truncate" title={log.oldValue || ''}>{log.oldValue}</span>
+                            <span className="text-slate-400 dark:text-slate-600">→</span>
+                            <span className="text-teal-600 dark:text-teal-400 font-medium bg-teal-50 dark:bg-teal-950/30 px-1.5 py-0.5 rounded max-w-[200px] truncate" title={log.newValue || ''}>{log.newValue}</span>
+                        </div>
+                        <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                            {new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                    </div>
+                ))}
+            </div>
+            {logs.length > 5 && (
+                <div className="pt-2 text-right border-t border-slate-100 dark:border-slate-800">
+                    <Link
+                        href={`/clinical-profile/${patientId}/history?section=${sectionKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400 dark:hover:text-teal-300 hover:underline inline-flex items-center gap-1 transition-all"
+                    >
+                        See more
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" />
+                        </svg>
+                    </Link>
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default function ChronicIllnessForm({ 
     patientId, 
@@ -32,7 +96,8 @@ export default function ChronicIllnessForm({
     dyslipidemiaUpdatedAt,
     dietAndLifestyleUpdatedAt,
     assessOfComplicationsUpdatedAt,
-    otherChronicIllnessesUpdatedAt
+    otherChronicIllnessesUpdatedAt,
+    historyLogs = []
 }: { 
     patientId: string, 
     initialFbs: number | null, 
@@ -61,7 +126,8 @@ export default function ChronicIllnessForm({
     dyslipidemiaUpdatedAt: Date | null,
     dietAndLifestyleUpdatedAt: Date | null,
     assessOfComplicationsUpdatedAt: Date | null,
-    otherChronicIllnessesUpdatedAt: Date | null
+    otherChronicIllnessesUpdatedAt: Date | null,
+    historyLogs?: HistoryLog[]
 }) {
     const [fbs, setFbs] = useState(initialFbs ? String(initialFbs) : '')
     const [hba1c, setHba1c] = useState(initialHba1c ? String(initialHba1c) : '')
@@ -79,7 +145,7 @@ export default function ChronicIllnessForm({
     const [savedHdl, setSavedHdl] = useState(hdl)
     const [savedLdl, setSavedLdl] = useState(ldl)
 
-    const [diabetesTab, setDiabetesTab] = useState<'measurements' | 'details' | 'drugs' | 'sugarControl'>('measurements')
+    const [diabetesTab, setDiabetesTab] = useState<'measurements' | 'details' | 'drugs' | 'sugarControl' | 'history'>('measurements')
     const [onSetValue, setOnSetValue] = useState(initialDiabetesOnSet || '')
     const [savedOnSet, setSavedOnSet] = useState(onSetValue)
     
@@ -95,7 +161,7 @@ export default function ChronicIllnessForm({
     const [complicationsText, setComplicationsText] = useState(initialDiabetesComplications || '')
     const [savedComplicationsText, setSavedComplicationsText] = useState(complicationsText)
 
-    const [htnTab, setHtnTab] = useState<'measurements' | 'details' | 'drugs'>('measurements')
+    const [htnTab, setHtnTab] = useState<'measurements' | 'details' | 'drugs' | 'history'>('measurements')
     const [htnOnSetValue, setHtnOnSetValue] = useState(initialHtnOnSet || '')
     const [savedHtnOnSet, setSavedHtnOnSet] = useState(htnOnSetValue)
     const [htnIsOnDrugs, setHtnIsOnDrugs] = useState(initialHtnIsOnDrugs)
@@ -103,7 +169,7 @@ export default function ChronicIllnessForm({
     const [htnDrugsText, setHtnDrugsText] = useState(initialHtnDrugsText || '')
     const [savedHtnDrugsText, setSavedHtnDrugsText] = useState(htnDrugsText)
 
-    const [dyslipidemiaTab, setDyslipidemiaTab] = useState<'measurements' | 'details' | 'drugs'>('measurements')
+    const [dyslipidemiaTab, setDyslipidemiaTab] = useState<'measurements' | 'details' | 'drugs' | 'history'>('measurements')
     const [dyslipidemiaOnSetValue, setDyslipidemiaOnSetValue] = useState(initialDyslipidemiaOnSet || '')
     const [savedDyslipidemiaOnSet, setSavedDyslipidemiaOnSet] = useState(dyslipidemiaOnSetValue)
     const [dyslipidemiaIsOnDrugs, setDyslipidemiaIsOnDrugs] = useState(initialDyslipidemiaIsOnDrugs)
@@ -113,12 +179,15 @@ export default function ChronicIllnessForm({
 
     const [dietAndLifestyleText, setDietAndLifestyleText] = useState(initialDietAndLifestyleText || '')
     const [savedDietAndLifestyleText, setSavedDietAndLifestyleText] = useState(dietAndLifestyleText)
+    const [dietAndLifestyleTab, setDietAndLifestyleTab] = useState<'form' | 'history'>('form')
 
     const [assessOfComplicationsText, setAssessOfComplicationsText] = useState(initialAssessOfComplicationsText || '')
     const [savedAssessOfComplicationsText, setSavedAssessOfComplicationsText] = useState(assessOfComplicationsText)
+    const [assessOfComplicationsTab, setAssessOfComplicationsTab] = useState<'form' | 'history'>('form')
 
     const [otherChronicIllnessesText, setOtherChronicIllnessesText] = useState(initialOtherChronicIllnessesText || '')
     const [savedOtherChronicIllnessesText, setSavedOtherChronicIllnessesText] = useState(otherChronicIllnessesText)
+    const [otherChronicIllnessesTab, setOtherChronicIllnessesTab] = useState<'form' | 'history'>('form')
 
     const [isDiabetesEditing, setIsDiabetesEditing] = useState(false)
     const [isHtnEditing, setIsHtnEditing] = useState(false)
@@ -129,6 +198,13 @@ export default function ChronicIllnessForm({
     const [isAssessOfComplicationsExpanded, setIsAssessOfComplicationsExpanded] = useState(false)
     const [isOtherChronicIllnessesEditing, setIsOtherChronicIllnessesEditing] = useState(false)
     const [isOtherChronicIllnessesExpanded, setIsOtherChronicIllnessesExpanded] = useState(false)
+
+    const diabetesLogs = historyLogs.filter(log => log.section === 'DIABETES')
+    const htnLogs = historyLogs.filter(log => log.section === 'HTN')
+    const dyslipidemiaLogs = historyLogs.filter(log => log.section === 'DYSLIPIDEMIA')
+    const dietAndLifestyleLogs = historyLogs.filter(log => log.section === 'DIET_LIFESTYLE')
+    const assessOfComplicationsLogs = historyLogs.filter(log => log.section === 'ASSESS_COMPLICATIONS')
+    const otherChronicIllnessesLogs = historyLogs.filter(log => log.section === 'OTHER_CHRONIC_ILLNESSES')
 
     const hasChanges = fbs !== savedFbs || hba1c !== savedHba1c || bp !== savedBp || totalCholesterol !== savedTotalCholesterol || triglycerides !== savedTriglycerides || hdl !== savedHdl || ldl !== savedLdl || onSetValue !== savedOnSet || isOnDrugs !== savedIsOnDrugs || drugsText !== savedDrugsText || isSugarControl !== savedIsSugarControl || complicationsText !== savedComplicationsText || htnOnSetValue !== savedHtnOnSet || htnIsOnDrugs !== savedHtnIsOnDrugs || htnDrugsText !== savedHtnDrugsText || dyslipidemiaOnSetValue !== savedDyslipidemiaOnSet || dyslipidemiaIsOnDrugs !== savedDyslipidemiaIsOnDrugs || dyslipidemiaDrugsText !== savedDyslipidemiaDrugsText || dietAndLifestyleText !== savedDietAndLifestyleText || assessOfComplicationsText !== savedAssessOfComplicationsText || otherChronicIllnessesText !== savedOtherChronicIllnessesText
     const [isSaving, setIsSaving] = useState(false)
@@ -262,13 +338,27 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsDiabetesEditing(!isDiabetesEditing)}
+                            onClick={() => {
+                                setIsDiabetesEditing(!isDiabetesEditing)
+                                if (diabetesTab === 'history') setDiabetesTab('measurements')
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isDiabetesEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isDiabetesEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDiabetesTab(diabetesTab === 'history' ? 'measurements' : 'history')
+                                if (isDiabetesEditing) setIsDiabetesEditing(false)
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${diabetesTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {diabetesUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -413,6 +503,12 @@ export default function ChronicIllnessForm({
                             </div>
                         </div>
                     )}
+
+                    {diabetesTab === 'history' && (
+                        <div className="pt-2">
+                            <HistoryLogView logs={diabetesLogs} sectionKey="DIABETES" patientId={patientId} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -448,13 +544,27 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsHtnEditing(!isHtnEditing)}
+                            onClick={() => {
+                                setIsHtnEditing(!isHtnEditing)
+                                if (htnTab === 'history') setHtnTab('measurements')
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isHtnEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isHtnEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setHtnTab(htnTab === 'history' ? 'measurements' : 'history')
+                                if (isHtnEditing) setIsHtnEditing(false)
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${htnTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {htnUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -543,6 +653,12 @@ export default function ChronicIllnessForm({
                             </div>
                         </div>
                     )}
+
+                    {htnTab === 'history' && (
+                        <div className="pt-2">
+                            <HistoryLogView logs={htnLogs} sectionKey="HTN" patientId={patientId} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -578,13 +694,27 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsDyslipidemiaEditing(!isDyslipidemiaEditing)}
+                            onClick={() => {
+                                setIsDyslipidemiaEditing(!isDyslipidemiaEditing)
+                                if (dyslipidemiaTab === 'history') setDyslipidemiaTab('measurements')
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isDyslipidemiaEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isDyslipidemiaEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setDyslipidemiaTab(dyslipidemiaTab === 'history' ? 'measurements' : 'history')
+                                if (isDyslipidemiaEditing) setIsDyslipidemiaEditing(false)
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${dyslipidemiaTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {dyslipidemiaUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -739,6 +869,12 @@ export default function ChronicIllnessForm({
                             </div>
                         </div>
                     )}
+
+                    {dyslipidemiaTab === 'history' && (
+                        <div className="pt-2">
+                            <HistoryLogView logs={dyslipidemiaLogs} sectionKey="DYSLIPIDEMIA" patientId={patientId} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -760,13 +896,34 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsDietAndLifestyleEditing(!isDietAndLifestyleEditing)}
+                            onClick={() => {
+                                setIsDietAndLifestyleEditing(!isDietAndLifestyleEditing)
+                                if (dietAndLifestyleTab === 'history') setDietAndLifestyleTab('form')
+                                if (!isDietAndLifestyleExpanded) setIsDietAndLifestyleExpanded(true)
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isDietAndLifestyleEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isDietAndLifestyleEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const newTab = dietAndLifestyleTab === 'history' ? 'form' : 'history'
+                                setDietAndLifestyleTab(newTab)
+                                if (newTab === 'history') {
+                                    setIsDietAndLifestyleExpanded(true)
+                                }
+                                if (isDietAndLifestyleEditing) {
+                                    setIsDietAndLifestyleEditing(false)
+                                }
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${dietAndLifestyleTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {dietAndLifestyleUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -778,16 +935,22 @@ export default function ChronicIllnessForm({
 
                 {isDietAndLifestyleExpanded && (
                     <div className="w-full">
-                        <textarea
-                            name="dietAndLifestyleText"
-                            id="dietAndLifestyleText"
-                            rows={4}
-                            value={dietAndLifestyleText}
-                            onChange={(e) => isDietAndLifestyleEditing && setDietAndLifestyleText(e.target.value)}
-                            readOnly={!isDietAndLifestyleEditing}
-                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
-                            placeholder="Enter diet and lifestyle recommendations..."
-                        />
+                        {dietAndLifestyleTab === 'form' ? (
+                            <textarea
+                                name="dietAndLifestyleText"
+                                id="dietAndLifestyleText"
+                                rows={4}
+                                value={dietAndLifestyleText}
+                                onChange={(e) => isDietAndLifestyleEditing && setDietAndLifestyleText(e.target.value)}
+                                readOnly={!isDietAndLifestyleEditing}
+                                className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isDietAndLifestyleEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                                placeholder="Enter diet and lifestyle recommendations..."
+                            />
+                        ) : (
+                            <div className="pt-1">
+                                <HistoryLogView logs={dietAndLifestyleLogs} sectionKey="DIET_LIFESTYLE" patientId={patientId} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -810,13 +973,34 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsAssessOfComplicationsEditing(!isAssessOfComplicationsEditing)}
+                            onClick={() => {
+                                setIsAssessOfComplicationsEditing(!isAssessOfComplicationsEditing)
+                                if (assessOfComplicationsTab === 'history') setAssessOfComplicationsTab('form')
+                                if (!isAssessOfComplicationsExpanded) setIsAssessOfComplicationsExpanded(true)
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isAssessOfComplicationsEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isAssessOfComplicationsEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const newTab = assessOfComplicationsTab === 'history' ? 'form' : 'history'
+                                setAssessOfComplicationsTab(newTab)
+                                if (newTab === 'history') {
+                                    setIsAssessOfComplicationsExpanded(true)
+                                }
+                                if (isAssessOfComplicationsEditing) {
+                                    setIsAssessOfComplicationsEditing(false)
+                                }
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${assessOfComplicationsTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {assessOfComplicationsUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -828,16 +1012,22 @@ export default function ChronicIllnessForm({
 
                 {isAssessOfComplicationsExpanded && (
                     <div className="w-full">
-                        <textarea
-                            name="assessOfComplicationsText"
-                            id="assessOfComplicationsText"
-                            rows={4}
-                            value={assessOfComplicationsText}
-                            onChange={(e) => isAssessOfComplicationsEditing && setAssessOfComplicationsText(e.target.value)}
-                            readOnly={!isAssessOfComplicationsEditing}
-                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isAssessOfComplicationsEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
-                            placeholder="Enter assess of complications..."
-                        />
+                        {assessOfComplicationsTab === 'form' ? (
+                            <textarea
+                                name="assessOfComplicationsText"
+                                id="assessOfComplicationsText"
+                                rows={4}
+                                value={assessOfComplicationsText}
+                                onChange={(e) => isAssessOfComplicationsEditing && setAssessOfComplicationsText(e.target.value)}
+                                readOnly={!isAssessOfComplicationsEditing}
+                                className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isAssessOfComplicationsEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                                placeholder="Enter assess of complications..."
+                            />
+                        ) : (
+                            <div className="pt-1">
+                                <HistoryLogView logs={assessOfComplicationsLogs} sectionKey="ASSESS_COMPLICATIONS" patientId={patientId} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -860,13 +1050,34 @@ export default function ChronicIllnessForm({
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            onClick={() => setIsOtherChronicIllnessesEditing(!isOtherChronicIllnessesEditing)}
+                            onClick={() => {
+                                setIsOtherChronicIllnessesEditing(!isOtherChronicIllnessesEditing)
+                                if (otherChronicIllnessesTab === 'history') setOtherChronicIllnessesTab('form')
+                                if (!isOtherChronicIllnessesExpanded) setIsOtherChronicIllnessesExpanded(true)
+                            }}
                             className={`transition-colors p-1.5 rounded-md ${isOtherChronicIllnessesEditing ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                             title={isOtherChronicIllnessesEditing ? "Lock Section" : "Edit Section"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                             </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const newTab = otherChronicIllnessesTab === 'history' ? 'form' : 'history'
+                                setOtherChronicIllnessesTab(newTab)
+                                if (newTab === 'history') {
+                                    setIsOtherChronicIllnessesExpanded(true)
+                                }
+                                if (isOtherChronicIllnessesEditing) {
+                                    setIsOtherChronicIllnessesEditing(false)
+                                }
+                            }}
+                            className={`transition-colors p-1.5 rounded-md ${otherChronicIllnessesTab === 'history' ? 'text-teal-600 bg-teal-50 dark:text-teal-400 dark:bg-teal-900/30' : 'text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                            title="View History Log"
+                        >
+                            <HistoryIcon />
                         </button>
                         {otherChronicIllnessesUpdatedAt && (
                             <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
@@ -878,16 +1089,22 @@ export default function ChronicIllnessForm({
 
                 {isOtherChronicIllnessesExpanded && (
                     <div className="w-full">
-                        <textarea
-                            name="otherChronicIllnessesText"
-                            id="otherChronicIllnessesText"
-                            rows={4}
-                            value={otherChronicIllnessesText}
-                            onChange={(e) => isOtherChronicIllnessesEditing && setOtherChronicIllnessesText(e.target.value)}
-                            readOnly={!isOtherChronicIllnessesEditing}
-                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isOtherChronicIllnessesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
-                            placeholder="Enter other chronic illnesses..."
-                        />
+                        {otherChronicIllnessesTab === 'form' ? (
+                            <textarea
+                                name="otherChronicIllnessesText"
+                                id="otherChronicIllnessesText"
+                                rows={4}
+                                value={otherChronicIllnessesText}
+                                onChange={(e) => isOtherChronicIllnessesEditing && setOtherChronicIllnessesText(e.target.value)}
+                                readOnly={!isOtherChronicIllnessesEditing}
+                                className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 transition-shadow disabled:text-slate-500 disabled:ring-slate-200 dark:disabled:text-slate-400 dark:disabled:ring-slate-700 resize-none ${isOtherChronicIllnessesEditing ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700 disabled:bg-slate-100 dark:disabled:bg-slate-800/80'}`}
+                                placeholder="Enter other chronic illnesses..."
+                            />
+                        ) : (
+                            <div className="pt-1">
+                                <HistoryLogView logs={otherChronicIllnessesLogs} sectionKey="OTHER_CHRONIC_ILLNESSES" patientId={patientId} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

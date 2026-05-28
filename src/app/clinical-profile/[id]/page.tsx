@@ -102,6 +102,7 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                                             dietAndLifestyleUpdatedAt={(patient as any).chronicIllnessProfile?.dietAndLifestyleUpdatedAt || null}
                                             assessOfComplicationsUpdatedAt={(patient as any).chronicIllnessProfile?.assessOfComplicationsUpdatedAt || null}
                                             otherChronicIllnessesUpdatedAt={(patient as any).chronicIllnessProfile?.otherChronicIllnessesUpdatedAt || null}
+                                            historyLogs={(patient as any).chronicIllnessHistories || []}
                                         />
                                     </div>
                                 }

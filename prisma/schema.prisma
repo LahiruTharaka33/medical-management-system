@@ -50,6 +50,7 @@ model Patient {
   updatedAt     DateTime     @updatedAt  
   chronicIllnessProfile ChronicIllnessProfile?
   presentingComplains   PresentingComplain[]
+  chronicIllnessHistories ChronicIllnessHistory[]
 }
 
 model ChronicIllnessProfile {
@@ -152,5 +153,19 @@ model DayPattern {
   accessGroup   AccessGroup? @relation(fields: [accessGroupId], references: [id], onDelete: SetNull)
 
   @@unique([name, accessGroupId])
+}
+
+model ChronicIllnessHistory {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  section   String   // 'DIABETES', 'HTN', 'DYSLIPIDEMIA', 'DIET_LIFESTYLE', 'ASSESS_COMPLICATIONS', 'OTHER_CHRONIC_ILLNESSES'
+  field     String   // e.g. 'Fasting Blood Sugar', 'Diet and Life Style'
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+
+  @@index([patientId])
+  @@index([section])
 }
 
