@@ -28,6 +28,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
     const [examination, setExamination] = useState('')
     const [investigation, setInvestigation] = useState('')
     const [diagnose, setDiagnose] = useState('')
+    const [focusedField, setFocusedField] = useState<string | null>(null)
     
     const [isSaving, setIsSaving] = useState(false)
     const [message, setMessage] = useState('')
@@ -268,7 +269,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                 {isExpanded && (
                     <form onSubmit={handleSave} className="space-y-6 fade-in-up">
                         {/* Combined Form Card */}
-                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
+                        <div className={`border rounded-xl bg-slate-50/50 dark:bg-slate-800/30 transition-all duration-300 ${editingRecordId ? 'border-l-[3px] border-l-teal-500 dark:border-l-teal-400 border-t-slate-200 border-r-slate-200 border-b-slate-200 dark:border-t-slate-700 dark:border-r-slate-700 dark:border-b-slate-700 ring-1 ring-teal-500/20 dark:ring-teal-400/20' : 'border-slate-200 dark:border-slate-700'}`}>
                             <div className="p-6">
                                 <div className={`flex items-center justify-between gap-4 ${isPresentingExpanded ? 'mb-6' : 'mb-0'}`}>
                                     <button 
@@ -297,7 +298,9 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                             rows={3}
                                             value={symptom}
                                             onChange={(e) => setSymptom(e.target.value)}
-                                            className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:focus:ring-teal-500 shadow-sm ring-slate-200 dark:ring-slate-700"
+                                            onFocus={() => setFocusedField('symptom')}
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 shadow-sm transition-all duration-200 ${editingRecordId || focusedField === 'symptom' ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                             placeholder="Enter symptoms details (markdown supported)..."
                                         />
                                     </div>
@@ -315,7 +318,9 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                             rows={3}
                                             value={examination}
                                             onChange={(e) => setExamination(e.target.value)}
-                                            className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:focus:ring-teal-500 shadow-sm ring-slate-200 dark:ring-slate-700"
+                                            onFocus={() => setFocusedField('examination')}
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 shadow-sm transition-all duration-200 ${editingRecordId || focusedField === 'examination' ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                             placeholder="Enter examination details (markdown supported)..."
                                         />
                                     </div>
@@ -333,7 +338,9 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                             rows={3}
                                             value={investigation}
                                             onChange={(e) => setInvestigation(e.target.value)}
-                                            className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:focus:ring-teal-500 shadow-sm ring-slate-200 dark:ring-slate-700"
+                                            onFocus={() => setFocusedField('investigation')}
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 shadow-sm transition-all duration-200 ${editingRecordId || focusedField === 'investigation' ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                             placeholder="Enter investigation details (markdown supported)..."
                                         />
                                     </div>
@@ -351,7 +358,9 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                                             rows={3}
                                             value={diagnose}
                                             onChange={(e) => setDiagnose(e.target.value)}
-                                            className="block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:bg-slate-900 dark:text-white dark:focus:ring-teal-500 shadow-sm ring-slate-200 dark:ring-slate-700"
+                                            onFocus={() => setFocusedField('diagnose')}
+                                            onBlur={() => setFocusedField(null)}
+                                            className={`block w-full rounded-md border-0 py-2 pl-3 pr-3 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6 dark:text-white dark:focus:ring-teal-500 shadow-sm transition-all duration-200 ${editingRecordId || focusedField === 'diagnose' ? 'bg-white dark:bg-slate-900 ring-teal-500/50 dark:ring-teal-400/50' : 'bg-slate-100 dark:bg-slate-800/80 ring-slate-200 dark:ring-slate-700'}`}
                                             placeholder="Enter diagnose details (markdown supported)..."
                                         />
                                     </div>
