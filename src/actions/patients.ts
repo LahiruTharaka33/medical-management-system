@@ -535,3 +535,35 @@ export async function updatePresentingComplain(complainId: string, data: {
         return { success: false, error: 'Failed to update data' }
     }
 }
+
+export async function deletePresentingComplain(complainId: string) {
+    try {
+        const user = await getCurrentUser()
+        if (!user) {
+            return { success: false, error: 'Unauthorized' }
+        }
+
+        const existingComplain = await prisma.presentingComplain.findUnique({
+            where: { id: complainId },
+            include: { patient: true }
+        })
+
+        if (!existingComplain) {
+            return { success: false, error: 'Record not found' }
+        }
+
+        if (user.role !== 'ADMIN' && existingComplain.patient.accessGroupId !== user.accessGroupId) {
+            return { success: false, error: 'Unauthorized access' }
+        }
+
+        await prisma.presentingComplain.delete({
+            where: { id: complainId }
+        })
+
+        revalidatePath(`/clinical-profile/${existingComplain.patientId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to delete presenting complain:', error)
+        return { success: false, error: 'Failed to delete record' }
+    }
+}

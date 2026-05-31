@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { savePresentingComplain, updatePresentingComplain } from '@/actions/patients'
+import { savePresentingComplain, updatePresentingComplain, deletePresentingComplain } from '@/actions/patients'
 import { getMedicines, MedicineData, getDayPatterns, createDayPattern } from '@/actions/medicines'
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog'
 
 type PresentingComplainLog = {
     id: string;
@@ -37,6 +38,8 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
     // Edit States
     const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
     const [originalData, setOriginalData] = useState<any>(null)
+    const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
 
     // Prescription States
@@ -232,6 +235,24 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
         setDiagnose('')
         setNumberOfDays('')
         setPrescriptions([])
+    }
+
+    const handleDelete = async () => {
+        if (!deletingRecordId) return
+        setIsDeleting(true)
+        const result = await deletePresentingComplain(deletingRecordId)
+        setIsDeleting(false)
+        if (result.success) {
+            setDeletingRecordId(null)
+            // If we were editing the record being deleted, clear the form
+            if (editingRecordId === deletingRecordId) {
+                handleCancelEdit()
+            }
+            router.refresh()
+        } else {
+            setError(result.error || 'Failed to delete record')
+            setDeletingRecordId(null)
+        }
     }
 
     // Check for changes to enable/disable button
@@ -551,16 +572,25 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
                     <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-6">Saved Records</h2>
                     <div className="space-y-6">
                         {savedLogs.map((log) => (
-                            <SavedRecordCard key={log.id} log={log} onEdit={() => handleEdit(log)} />
+                            <SavedRecordCard key={log.id} log={log} onEdit={() => handleEdit(log)} onDelete={() => setDeletingRecordId(log.id)} />
                         ))}
                     </div>
                 </div>
             )}
+
+            <ConfirmDeleteDialog
+                open={!!deletingRecordId}
+                isDeleting={isDeleting}
+                title="Delete Record"
+                message="This will permanently delete this consultation record and all its prescriptions. This action cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setDeletingRecordId(null)}
+            />
         </div>
     )
 }
 
-function SavedRecordCard({ log, onEdit }: { log: PresentingComplainLog, onEdit: () => void }) {
+function SavedRecordCard({ log, onEdit, onDelete }: { log: PresentingComplainLog, onEdit: () => void, onDelete: () => void }) {
     const [activeTab, setActiveTab] = useState<'consultation' | 'medicine'>('consultation')
     const hasPrescriptions = log.prescriptions && log.prescriptions.length > 0
 
@@ -598,16 +628,22 @@ function SavedRecordCard({ log, onEdit }: { log: PresentingComplainLog, onEdit: 
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
                     <button
                         type="button"
                         onClick={onEdit}
                         className="p-1.5 text-slate-400 hover:text-teal-600 dark:text-slate-500 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-all"
                         title="Edit Record"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onDelete}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-md transition-all"
+                        title="Delete Record"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
                     </button>
                 </div>
             </div>
