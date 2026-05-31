@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { MedicineData, createMedicine, updateMedicine, deleteMedicine } from '@/actions/medicines';
 import MedicineDialog from './MedicineDialog';
+import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 
 // Icons
 const EditIcon = () => (
@@ -26,6 +27,8 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingMedicine, setEditingMedicine] = useState<MedicineData | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deletingMedicineId, setDeletingMedicineId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     React.useEffect(() => {
         setMedicines(initialMedicines);
@@ -47,10 +50,17 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
         if (!res.success) throw new Error(res.error);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this medicine?')) return;
-        const res = await deleteMedicine(id);
-        if (!res.success) alert(res.error);
+    const handleDelete = async () => {
+        if (!deletingMedicineId) return;
+        setIsDeleting(true);
+        const res = await deleteMedicine(deletingMedicineId);
+        setIsDeleting(false);
+        if (res.success) {
+            setDeletingMedicineId(null);
+        } else {
+            alert(res.error);
+            setDeletingMedicineId(null);
+        }
     };
 
     const openCreateDialog = () => {
@@ -153,7 +163,7 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
                                                         <EditIcon />
                                                     </button>
                                                     <button
-                                                        onClick={() => medicine.id && handleDelete(medicine.id)}
+                                                        onClick={() => medicine.id && setDeletingMedicineId(medicine.id)}
                                                         className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
                                                         title="Delete"
                                                     >
@@ -175,6 +185,15 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
                 onClose={() => setDialogOpen(false)}
                 medicine={editingMedicine}
                 onSave={editingMedicine ? handleUpdate : handleCreate}
+            />
+
+            <ConfirmDeleteDialog
+                open={!!deletingMedicineId}
+                isDeleting={isDeleting}
+                title="Delete Medicine"
+                message="This will permanently delete this medicine from the registry. This action cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setDeletingMedicineId(null)}
             />
         </div>
     );

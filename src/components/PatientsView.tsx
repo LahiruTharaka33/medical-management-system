@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PatientData, createPatient, updatePatient, deletePatient } from '@/actions/patients';
 import PatientDialog from './PatientDialog';
+import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 
 // Icons
 const EditIcon = () => (
@@ -27,6 +28,8 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
     const [patients, setPatients] = useState<PatientData[]>(initialPatients);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingPatient, setEditingPatient] = useState<PatientData | null>(null);
+    const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Sync state if initialPatients updates (from server revalidation)
     // Note: simpler to just use router.refresh() in actions but passing initialPatients is standard.
@@ -46,10 +49,17 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
         if (!res.success) throw new Error(res.error);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this patient?')) return;
-        const res = await deletePatient(id);
-        if (!res.success) alert(res.error);
+    const handleDelete = async () => {
+        if (!deletingPatientId) return;
+        setIsDeleting(true);
+        const res = await deletePatient(deletingPatientId);
+        setIsDeleting(false);
+        if (res.success) {
+            setDeletingPatientId(null);
+        } else {
+            alert(res.error);
+            setDeletingPatientId(null);
+        }
     };
 
     const openCreateDialog = () => {
@@ -151,7 +161,7 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                                                         <EditIcon />
                                                     </button>
                                                     <button
-                                                        onClick={() => patient.id && handleDelete(patient.id)}
+                                                        onClick={() => patient.id && setDeletingPatientId(patient.id)}
                                                         className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
                                                         title="Delete"
                                                     >
@@ -173,6 +183,15 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                 onClose={() => setDialogOpen(false)}
                 patient={editingPatient}
                 onSave={editingPatient ? handleUpdate : handleCreate}
+            />
+
+            <ConfirmDeleteDialog
+                open={!!deletingPatientId}
+                isDeleting={isDeleting}
+                title="Delete Patient"
+                message="This will permanently delete this patient and all associated records. This action cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setDeletingPatientId(null)}
             />
         </div>
     );
