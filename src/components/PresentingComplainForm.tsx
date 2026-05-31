@@ -132,8 +132,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
 
     const hasContent = symptom.trim() !== '' || examination.trim() !== '' || investigation.trim() !== '' || diagnose.trim() !== ''
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const performSave = async (): Promise<boolean> => {
         setIsSaving(true)
         setMessage('')
         setError('')
@@ -158,6 +157,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
             result = await savePresentingComplain(patientId, data)
         }
 
+        let success = false
         if (result.success) {
             setMessage(editingRecordId ? 'Record updated successfully.' : 'Record saved successfully.')
             // Clear out fields for the next entry
@@ -176,10 +176,17 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
             setTimeout(() => {
                 setMessage('')
             }, 3000)
+            success = true
         } else {
             setError(result.error || 'Failed to process request')
         }
         setIsSaving(false)
+        return success
+    }
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault()
+        await performSave()
     }
 
     const handleEdit = (log: PresentingComplainLog) => {
@@ -248,6 +255,48 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
         
         return isSymptomChanged || isExaminationChanged || isInvestigationChanged || isDiagnoseChanged || isDaysChanged || isPrescriptionsChanged
     }
+
+    // --- Unsaved changes alert integration ---
+    const performSaveRef = useRef<() => Promise<boolean>>(() => Promise.resolve(false))
+    performSaveRef.current = performSave
+
+    // Dispatch dirty state to parent wrapper
+    useEffect(() => {
+        const dirty = hasChanges()
+        window.dispatchEvent(new CustomEvent('unsaved-changes', {
+            detail: { source: 'consultation', dirty }
+        }))
+    }, [symptom, examination, investigation, diagnose, numberOfDays, prescriptions, editingRecordId, originalData])
+
+    // Listen for external save trigger (from ClinicalProfileClientWrapper)
+    useEffect(() => {
+        const handler = async () => {
+            const success = await performSaveRef.current()
+            window.dispatchEvent(new CustomEvent('save-complete-consultation', {
+                detail: { success }
+            }))
+        }
+        window.addEventListener('trigger-save-consultation', handler)
+        return () => window.removeEventListener('trigger-save-consultation', handler)
+    }, [])
+
+    // Listen for discard trigger (clear localStorage draft)
+    useEffect(() => {
+        const handler = () => {
+            localStorage.removeItem(`consultation_draft_${patientId}`)
+        }
+        window.addEventListener('discard-changes', handler)
+        return () => window.removeEventListener('discard-changes', handler)
+    }, [patientId])
+
+    // Cleanup: mark as not dirty on unmount
+    useEffect(() => {
+        return () => {
+            window.dispatchEvent(new CustomEvent('unsaved-changes', {
+                detail: { source: 'consultation', dirty: false }
+            }))
+        }
+    }, [])
 
     return (
         <div className="space-y-6">

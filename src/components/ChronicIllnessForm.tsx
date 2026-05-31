@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { saveChronicIllnesses } from '@/actions/patients'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -212,8 +212,7 @@ export default function ChronicIllnessForm({
     const [error, setError] = useState('')
     const router = useRouter()
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const performSave = async (): Promise<boolean> => {
         setIsSaving(true)
         setMessage('')
         setError('')
@@ -226,12 +225,12 @@ export default function ChronicIllnessForm({
         const hdlValue = hdl ? parseFloat(hdl) : null
         const ldlValue = ldl ? parseFloat(ldl) : null
 
-        if (fbs && isNaN(fbsValue!)) return setError('FBS must be a number'), setIsSaving(false)
-        if (hba1c && isNaN(hba1cValue!)) return setError('HbA1c must be a number'), setIsSaving(false)
-        if (totalCholesterol && isNaN(tcValue!)) return setError('Total Cholesterol must be a number'), setIsSaving(false)
-        if (triglycerides && isNaN(tgValue!)) return setError('Triglycerides must be a number'), setIsSaving(false)
-        if (hdl && isNaN(hdlValue!)) return setError('HDL must be a number'), setIsSaving(false)
-        if (ldl && isNaN(ldlValue!)) return setError('LDL must be a number'), setIsSaving(false)
+        if (fbs && isNaN(fbsValue!)) { setError('FBS must be a number'); setIsSaving(false); return false }
+        if (hba1c && isNaN(hba1cValue!)) { setError('HbA1c must be a number'); setIsSaving(false); return false }
+        if (totalCholesterol && isNaN(tcValue!)) { setError('Total Cholesterol must be a number'); setIsSaving(false); return false }
+        if (triglycerides && isNaN(tgValue!)) { setError('Triglycerides must be a number'); setIsSaving(false); return false }
+        if (hdl && isNaN(hdlValue!)) { setError('HDL must be a number'); setIsSaving(false); return false }
+        if (ldl && isNaN(ldlValue!)) { setError('LDL must be a number'); setIsSaving(false); return false }
 
         const result = await saveChronicIllnesses(patientId, { 
             fbs: fbsValue, 
@@ -257,6 +256,7 @@ export default function ChronicIllnessForm({
             otherChronicIllnessesText: otherChronicIllnessesText || null
         })
 
+        let success = false
         if (result.success) {
             setMessage('Saved successfully!')
             setSavedFbs(fbs)
@@ -289,13 +289,51 @@ export default function ChronicIllnessForm({
             setIsOtherChronicIllnessesEditing(false)
             
             router.refresh()
+            success = true
         } else {
             setError(result.error || 'Failed to save')
         }
         setIsSaving(false)
-
         setTimeout(() => setMessage(''), 3000)
+        return success
     }
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault()
+        await performSave()
+    }
+
+    // --- Unsaved changes alert integration ---
+    const performSaveRef = useRef<() => Promise<boolean>>(() => Promise.resolve(false))
+    performSaveRef.current = performSave
+
+    // Dispatch dirty state to parent wrapper
+    useEffect(() => {
+        window.dispatchEvent(new CustomEvent('unsaved-changes', {
+            detail: { source: 'chronicIllness', dirty: hasChanges }
+        }))
+    }, [hasChanges])
+
+    // Listen for external save trigger (from ClinicalProfileClientWrapper)
+    useEffect(() => {
+        const handler = async () => {
+            const success = await performSaveRef.current()
+            window.dispatchEvent(new CustomEvent('save-complete-chronicIllness', {
+                detail: { success }
+            }))
+        }
+        window.addEventListener('trigger-save-chronicIllness', handler)
+        return () => window.removeEventListener('trigger-save-chronicIllness', handler)
+    }, [])
+
+    // Cleanup: mark as not dirty on unmount
+    useEffect(() => {
+        return () => {
+            window.dispatchEvent(new CustomEvent('unsaved-changes', {
+                detail: { source: 'chronicIllness', dirty: false }
+            }))
+        }
+    }, [])
 
     return (
         <form onSubmit={handleSave} className="relative space-y-6">

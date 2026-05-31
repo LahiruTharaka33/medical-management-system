@@ -11,6 +11,7 @@ import PatientProfileHeader from '@/components/PatientProfileHeader';
 import ChronicIllnessForm from '@/components/ChronicIllnessForm';
 import PresentingComplainForm from '@/components/PresentingComplainForm';
 import ProfileTabs from '@/components/ProfileTabs';
+import ClinicalProfileClientWrapper from '@/components/ClinicalProfileClientWrapper';
 
 const ChevronLeftIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -40,6 +41,7 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
     const patient = patientResult.data;
 
     return (
+        <ClinicalProfileClientWrapper>
         <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
             <Sidebar />
             <div className="flex-1 transition-all duration-300 md:ml-64">
@@ -120,5 +122,6 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
                 </div>
             </div>
         </div>
+        </ClinicalProfileClientWrapper>
     );
 }
