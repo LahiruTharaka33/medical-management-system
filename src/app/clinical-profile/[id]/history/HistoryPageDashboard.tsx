@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 
 type HistoryLog = {
     id: string
@@ -29,10 +29,47 @@ const SECTIONS = [
 
 export default function HistoryPageDashboard({ logs, patientId, initialSection }: Props) {
     const [activeSection, setActiveSection] = useState(initialSection)
+    const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set())
 
     const filteredLogs = logs.filter(log => log.section === activeSection)
 
     const isMeasurementSection = ['DIABETES', 'HTN', 'DYSLIPIDEMIA'].includes(activeSection)
+
+    // Get unique field names for current section
+    const uniqueFields = useMemo(() => {
+        const fields = new Set(filteredLogs.map(log => log.field))
+        return Array.from(fields).sort()
+    }, [filteredLogs])
+
+    // Whether "All" is effectively active (no specific filter selected)
+    const isAllSelected = selectedFields.size === 0
+
+    // Apply field filter on top of section filter
+    const displayedLogs = useMemo(() => {
+        if (!isMeasurementSection || isAllSelected) return filteredLogs
+        return filteredLogs.filter(log => selectedFields.has(log.field))
+    }, [filteredLogs, selectedFields, isMeasurementSection, isAllSelected])
+
+    const handleTabChange = (sectionKey: string) => {
+        setActiveSection(sectionKey)
+        setSelectedFields(new Set()) // Reset filter on tab switch
+    }
+
+    const handleToggleField = (field: string) => {
+        setSelectedFields(prev => {
+            const next = new Set(prev)
+            if (next.has(field)) {
+                next.delete(field)
+            } else {
+                next.add(field)
+            }
+            return next
+        })
+    }
+
+    const handleSelectAll = () => {
+        setSelectedFields(new Set())
+    }
 
     const formatDateTime = (dateStr: string | Date) => {
         return new Intl.DateTimeFormat('en-US', {
@@ -49,7 +86,7 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
                     {SECTIONS.map((sec) => (
                         <button
                             key={sec.key}
-                            onClick={() => setActiveSection(sec.key)}
+                            onClick={() => handleTabChange(sec.key)}
                             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-150 ${
                                 activeSection === sec.key
                                     ? 'bg-teal-600 text-white shadow-sm dark:bg-teal-500'
@@ -62,18 +99,71 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
                 </div>
             </div>
 
+            {/* Filter Chips - Only for measurement sections with data */}
+            {isMeasurementSection && uniqueFields.length > 1 && (
+                <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/30 dark:bg-slate-800/30">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">
+                            Filter by:
+                        </span>
+                        {/* All chip */}
+                        <button
+                            onClick={handleSelectAll}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                                isAllSelected
+                                    ? 'bg-teal-600 text-white shadow-sm dark:bg-teal-500'
+                                    : 'bg-white dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-600 hover:ring-teal-300 dark:hover:ring-teal-600 hover:text-teal-600 dark:hover:text-teal-400'
+                            }`}
+                        >
+                            {isAllSelected && (
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                            )}
+                            All
+                        </button>
+                        {/* Individual field chips */}
+                        {uniqueFields.map((field) => {
+                            const isSelected = selectedFields.has(field)
+                            return (
+                                <button
+                                    key={field}
+                                    onClick={() => handleToggleField(field)}
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                                        isSelected
+                                            ? 'bg-teal-600 text-white shadow-sm dark:bg-teal-500'
+                                            : 'bg-white dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-600 hover:ring-teal-300 dark:hover:ring-teal-600 hover:text-teal-600 dark:hover:text-teal-400'
+                                    }`}
+                                >
+                                    {isSelected && (
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    )}
+                                    {field}
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* Content Body */}
             <div className="p-6">
-                {filteredLogs.length === 0 ? (
+                {displayedLogs.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-700/50 text-slate-400 dark:text-slate-500">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
                         </div>
-                        <h3 className="text-base font-semibold text-slate-800 dark:text-white">No history records found</h3>
+                        <h3 className="text-base font-semibold text-slate-800 dark:text-white">
+                            {!isAllSelected ? 'No records match the selected filter' : 'No history records found'}
+                        </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                            Changes saved for this section will be logged and displayed here.
+                            {!isAllSelected
+                                ? 'Try selecting a different field or click "All" to view all records.'
+                                : 'Changes saved for this section will be logged and displayed here.'}
                         </p>
                     </div>
                 ) : isMeasurementSection ? (
@@ -90,7 +180,7 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                                {filteredLogs.map((log) => (
+                                {displayedLogs.map((log) => (
                                     <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
                                         <td className="py-4 px-4 font-medium whitespace-nowrap text-slate-500 dark:text-slate-400">
                                             {formatDateTime(log.createdAt)}
@@ -121,7 +211,7 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
                 ) : (
                     /* Text Section Logs - Card Timeline / Comparison View */
                     <div className="space-y-6">
-                        {filteredLogs.map((log) => (
+                        {displayedLogs.map((log) => (
                             <div key={log.id} className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
                                 {/* Card Header */}
                                 <div className="bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -165,3 +255,4 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
         </div>
     )
 }
+
