@@ -339,10 +339,12 @@ export default function ChronicIllnessForm({
         <form onSubmit={handleSave} className="relative space-y-6">
             {/* Diabetes Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b border-slate-200 dark:border-slate-700 pb-2 gap-4">
-                    <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-700 pb-2 gap-4">
+                    <div className="flex flex-wrap items-center gap-4 lg:gap-6">
                         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Diabetes</h3>
-                        <div className="flex space-x-4">
+                        
+                        {/* Tab buttons for desktop (lg) */}
+                        <div className="hidden lg:flex space-x-4">
                             <button
                                 type="button"
                                 onClick={() => setDiabetesTab('measurements')}
@@ -372,7 +374,23 @@ export default function ChronicIllnessForm({
                                 Sugar Control
                             </button>
                         </div>
+
+                        {/* Tab Dropdown for tablet/mobile (< lg) */}
+                        <div className="lg:hidden block">
+                            <select
+                                value={diabetesTab}
+                                onChange={(e) => setDiabetesTab(e.target.value as any)}
+                                className="block w-36 sm:w-44 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                            >
+                                <option value="measurements">Measurements</option>
+                                <option value="details">On Set</option>
+                                <option value="drugs">On Drugs</option>
+                                <option value="sugarControl">Sugar Control</option>
+                                <option value="history">History Log</option>
+                            </select>
+                        </div>
                     </div>
+                    
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -399,11 +417,20 @@ export default function ChronicIllnessForm({
                             <HistoryIcon />
                         </button>
                         {diabetesUpdatedAt && (
-                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                            <span className="hidden lg:inline text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
                                 Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(diabetesUpdatedAt))}
                             </span>
                         )}
                     </div>
+
+                    {/* Timestamp stacked row for below lg */}
+                    {diabetesUpdatedAt && (
+                        <div className="w-full lg:hidden -mt-2">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(diabetesUpdatedAt))}
+                            </span>
+                        </div>
+                    )}
                 </div>
                 
                 <div className="min-h-[170px] md:min-h-[80px]">
@@ -552,10 +579,12 @@ export default function ChronicIllnessForm({
 
             {/* HTN Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                    <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center justify-between mb-6 gap-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    <div className="flex flex-wrap items-center gap-4 lg:gap-6">
                         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">HTN - Blood Pressure</h3>
-                        <div className="flex space-x-4">
+                        
+                        {/* Tab buttons for desktop (lg) */}
+                        <div className="hidden lg:flex space-x-4">
                             <button
                                 type="button"
                                 onClick={() => setHtnTab('measurements')}
@@ -578,7 +607,22 @@ export default function ChronicIllnessForm({
                                 On Drugs
                             </button>
                         </div>
+
+                        {/* Tab Dropdown for tablet/mobile (< lg) */}
+                        <div className="lg:hidden block">
+                            <select
+                                value={htnTab}
+                                onChange={(e) => setHtnTab(e.target.value as any)}
+                                className="block w-36 sm:w-44 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                            >
+                                <option value="measurements">Measurements</option>
+                                <option value="details">On Set</option>
+                                <option value="drugs">On Drugs</option>
+                                <option value="history">History Log</option>
+                            </select>
+                        </div>
                     </div>
+                    
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -605,11 +649,20 @@ export default function ChronicIllnessForm({
                             <HistoryIcon />
                         </button>
                         {htnUpdatedAt && (
-                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                            <span className="hidden lg:inline text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
                                 Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(htnUpdatedAt))}
                             </span>
                         )}
                     </div>
+
+                    {/* Timestamp stacked row for below lg */}
+                    {htnUpdatedAt && (
+                        <div className="w-full lg:hidden -mt-4">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(htnUpdatedAt))}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="min-h-[170px] md:min-h-[80px]">
@@ -702,10 +755,12 @@ export default function ChronicIllnessForm({
 
             {/* Dyslipidemia Sub-section */}
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50/50 dark:bg-slate-800/30">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                    <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center justify-between mb-6 gap-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                    <div className="flex flex-wrap items-center gap-4 lg:gap-6">
                         <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">Dyslipidemia - Cholesterol</h3>
-                        <div className="flex space-x-4">
+                        
+                        {/* Tab buttons for desktop (lg) */}
+                        <div className="hidden lg:flex space-x-4">
                             <button
                                 type="button"
                                 onClick={() => setDyslipidemiaTab('measurements')}
@@ -728,7 +783,22 @@ export default function ChronicIllnessForm({
                                 On Drugs
                             </button>
                         </div>
+
+                        {/* Tab Dropdown for tablet/mobile (< lg) */}
+                        <div className="lg:hidden block">
+                            <select
+                                value={dyslipidemiaTab}
+                                onChange={(e) => setDyslipidemiaTab(e.target.value as any)}
+                                className="block w-36 sm:w-44 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs sm:text-sm font-medium text-slate-700 focus:border-teal-500 focus:ring-teal-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                            >
+                                <option value="measurements">Measurements</option>
+                                <option value="details">On Set</option>
+                                <option value="drugs">On Drugs</option>
+                                <option value="history">History Log</option>
+                            </select>
+                        </div>
                     </div>
+                    
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -755,11 +825,20 @@ export default function ChronicIllnessForm({
                             <HistoryIcon />
                         </button>
                         {dyslipidemiaUpdatedAt && (
-                            <span className="text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                            <span className="hidden lg:inline text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
                                 Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dyslipidemiaUpdatedAt))}
                             </span>
                         )}
                     </div>
+
+                    {/* Timestamp stacked row for below lg */}
+                    {dyslipidemiaUpdatedAt && (
+                        <div className="w-full lg:hidden -mt-4">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs">
+                                Last updated: {new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(dyslipidemiaUpdatedAt))}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="min-h-[170px] md:min-h-[80px]">

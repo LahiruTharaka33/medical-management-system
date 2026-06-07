@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  body.sidebar-collapsed-tablet aside + div {
+    margin-left: 0 !important;
+  }
+}

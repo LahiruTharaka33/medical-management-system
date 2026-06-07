@@ -204,7 +204,7 @@ export default function PresentingComplainForm({ patientId, savedLogs = [] }: { 
         
         const mappedPrescriptions = log.prescriptions?.map(p => ({
             id: p.id,
-            medicineId: p.medicine.id,
+            medicineId: p.medicine.id || '',
             dosage: p.dosage,
             dayPattern: p.dayPattern
         })) || []

@@ -61,7 +61,7 @@ export default function AccessGroupDialog({ open, onClose, accessGroup, onSave }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md lg:max-w-lg mx-4 overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-5 text-white">
                     <h2 className="text-xl font-bold">

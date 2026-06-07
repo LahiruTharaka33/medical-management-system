@@ -65,7 +65,7 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-slate-900/50 backdrop-blur-sm p-4 md:p-0">
-            <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-slate-800 transition-all transform scale-100">
+            <div className="relative w-full max-w-md lg:max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-slate-800 transition-all transform scale-100">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
                     <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -101,7 +101,7 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
                             <input
@@ -126,7 +126,7 @@ const PatientDialog = ({ open, onClose, patient, onSave }: PatientDialogProps) =
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Age</label>
                             <select

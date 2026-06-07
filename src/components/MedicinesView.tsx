@@ -29,6 +29,7 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
     const [searchQuery, setSearchQuery] = useState('');
     const [deletingMedicineId, setDeletingMedicineId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showAllColumns, setShowAllColumns] = useState(false);
 
     React.useEffect(() => {
         setMedicines(initialMedicines);
@@ -82,14 +83,14 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
     return (
         <div className="flex-1 min-h-screen bg-slate-50 transition-colors dark:bg-slate-900">
             {/* Top Header */}
-            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
+            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-4 md:px-6 lg:px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
                 <div className="flex flex-col">
                     <h1 className="text-xl font-bold text-slate-800 dark:text-white">Medicine Registry</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Manage medicine inventory and catalog</p>
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative hidden md:block w-72">
+                    <div className="relative hidden md:block md:w-48 lg:w-72">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                             <SearchIcon />
                         </div>
@@ -104,28 +105,38 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
                 </div>
             </header>
 
-            <main className="p-8">
+            <main className="p-4 md:p-6 lg:p-8">
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-3 lg:px-6 py-4 lg:py-5 dark:border-slate-700">
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Registered Medicines</h3>
-                        <button
-                            onClick={openCreateDialog}
-                            className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors"
-                        >
-                            <PillPlusIcon />
-                            Add Medicine
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowAllColumns(!showAllColumns)}
+                                className={`lg:hidden flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${showAllColumns ? 'bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:ring-teal-800' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'}`}
+                                title={showAllColumns ? 'Show fewer columns' : 'Show all columns'}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><line x1="12" x2="12" y1="3" y2="21" /><line x1="3" x2="21" y1="12" y2="12" /></svg>
+                                {showAllColumns ? 'Fewer' : 'All Cols'}
+                            </button>
+                            <button
+                                onClick={openCreateDialog}
+                                className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors"
+                            >
+                                <PillPlusIcon />
+                                <span className="hidden sm:inline">Add Medicine</span>
+                            </button>
+                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900/50 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">Code</th>
-                                    <th className="px-6 py-4 font-medium">Generic Name</th>
-                                    <th className="px-6 py-4 font-medium">Brand</th>
-                                    <th className="px-6 py-4 font-medium">Type</th>
-                                    <th className="px-6 py-4 font-medium">Strength</th>
-                                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Code</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Generic Name</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Brand</th>
+                                    <th className={`px-3 py-3 lg:px-6 lg:py-4 font-medium ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>Type</th>
+                                    <th className={`px-3 py-3 lg:px-6 lg:py-4 font-medium ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>Strength</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -138,22 +149,22 @@ export default function MedicinesView({ initialMedicines }: { initialMedicines: 
                                 ) : (
                                     filteredMedicines.map((medicine) => (
                                         <tr key={medicine.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td className="px-6 py-4 font-mono text-xs font-semibold text-teal-600 dark:text-teal-400">
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 font-mono text-xs font-semibold text-teal-600 dark:text-teal-400">
                                                 <span dangerouslySetInnerHTML={{ __html: highlightText(medicine.code, searchQuery) }} />
                                             </td>
-                                            <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-slate-900 dark:text-white">
                                                 <span dangerouslySetInnerHTML={{ __html: highlightText(medicine.genericName, searchQuery) }} />
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">
                                                 <span dangerouslySetInnerHTML={{ __html: highlightText(medicine.brand, searchQuery) }} />
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                                            <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>
                                                 <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700">
                                                     {medicine.type}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{medicine.strength} {medicine.unit}</td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>{medicine.strength} {medicine.unit}</td>
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => openEditDialog(medicine)}

@@ -24,20 +24,14 @@ export default function UsersView({ initialUsers }: { initialUsers: User[] }) {
     return (
         <div className="flex-1 min-h-screen bg-slate-50 transition-colors dark:bg-slate-900">
             {/* Top Header */}
-            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
+            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-4 md:px-6 lg:px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
                 <div className="flex flex-col">
                     <h1 className="text-xl font-bold text-slate-800 dark:text-white">Users</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400">View all registered users</p>
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative hidden md:block">
-                        <SearchIcon />
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            className="absolute inset-0 h-full w-64 bg-transparent pl-8 text-sm outline-none placeholder:text-transparent"
-                        />
+                    <div className="relative hidden md:block md:w-48 lg:w-72">
                         <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <SearchIcon />
@@ -63,9 +57,9 @@ export default function UsersView({ initialUsers }: { initialUsers: User[] }) {
                 </div>
             </header>
 
-            <main className="p-8">
+            <main className="p-4 md:p-6 lg:p-8">
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-3 lg:px-6 py-4 lg:py-5 dark:border-slate-700">
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Registered Users</h3>
                         <span className="text-sm text-slate-500">{initialUsers.length} users</span>
                     </div>
@@ -73,27 +67,27 @@ export default function UsersView({ initialUsers }: { initialUsers: User[] }) {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900/50 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">Name</th>
-                                    <th className="px-6 py-4 font-medium">Email</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Name</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Email</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                 {initialUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={2} className="px-6 py-8 text-center text-slate-500">
+                                        <td colSpan={2} className="px-3 py-8 lg:px-6 text-center text-slate-500">
                                             No users registered yet.
                                         </td>
                                     </tr>
                                 ) : (
                                     initialUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
                                                 <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-600 dark:bg-teal-900 dark:text-teal-300">
                                                     {user.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 {user.name}
                                             </td>
-                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{user.email}</td>
+                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{user.email}</td>
                                         </tr>
                                     ))
                                 )}

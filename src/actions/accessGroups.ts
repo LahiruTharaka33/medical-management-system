@@ -9,7 +9,7 @@ export type AccessGroupData = {
     id?: string;
     groupId: string;
     groupName: string;
-    description?: string;
+    description?: string | null;
 };
 
 export type AccessGroupWithUsers = AccessGroupData & {

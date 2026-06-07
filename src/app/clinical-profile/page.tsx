@@ -12,7 +12,7 @@ export default async function ClinicalProfilePage() {
     return (
         <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
             <Sidebar />
-            <div className="flex-1 transition-all duration-300 md:ml-64">
+            <div className="flex-1 transition-all duration-300 md:ml-20 lg:ml-64">
                 <ClinicalProfileView initialPatients={patients || []} />
             </div>
         </div>

@@ -35,20 +35,14 @@ const Dashboard = () => {
     return (
         <div className="flex-1 min-h-screen bg-slate-50 transition-colors dark:bg-slate-900">
             {/* Top Header */}
-            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
+            <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 px-4 md:px-6 lg:px-8 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80">
                 <div className="flex flex-col">
                     <h1 className="text-xl font-bold text-slate-800 dark:text-white">Dashboard Overview</h1>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Monday, 20 Jan 2026</p>
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative hidden md:block">
-                        <SearchIcon />
-                        <input
-                            type="text"
-                            placeholder="Search patients..."
-                            className="absolute inset-0 h-full w-64 bg-transparent pl-8 text-sm outline-none placeholder:text-transparent"
-                        /> {/* Hacky absolute mostly for layout, let's fix */}
+                    <div className="relative hidden md:block md:w-48 lg:w-64">
                         <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <SearchIcon />
@@ -75,7 +69,7 @@ const Dashboard = () => {
 
             </header>
 
-            <main className="p-8">
+            <main className="p-4 md:p-6 lg:p-8">
                 {/* Stats Grid */}
                 <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {[
@@ -84,7 +78,7 @@ const Dashboard = () => {
                         { title: 'Operations', value: '12', change: '-2.1%', icon: <HeartPulseIcon />, color: 'text-rose-600', bg: 'bg-rose-50' },
                         { title: 'Satisfied', value: '98%', change: '+1.2%', icon: <HeartPulseIcon />, color: 'text-teal-600', bg: 'bg-teal-50' }, // Reusing heart for satisfaction
                     ].map((stat, idx) => (
-                        <div key={idx} className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 hover:shadow-md transition-all dark:bg-slate-800 dark:ring-slate-700">
+                        <div key={idx} className="group relative overflow-hidden rounded-2xl bg-white p-4 lg:p-6 shadow-sm ring-1 ring-slate-200 hover:shadow-md transition-all dark:bg-slate-800 dark:ring-slate-700">
                             <div className="relative z-10 flex justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.title}</p>
@@ -107,7 +101,7 @@ const Dashboard = () => {
 
                 {/* Recent Patients Table */}
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-3 lg:px-6 py-4 lg:py-5 dark:border-slate-700">
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Recent Appointments</h3>
                         <button className="text-sm font-medium text-teal-600 hover:text-teal-700">View all</button>
                     </div>
@@ -115,12 +109,12 @@ const Dashboard = () => {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900/50 dark:text-slate-400">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">Patient Name</th>
-                                    <th className="px-6 py-4 font-medium">Visit ID</th>
-                                    <th className="px-6 py-4 font-medium">Date</th>
-                                    <th className="px-6 py-4 font-medium">Doctor</th>
-                                    <th className="px-6 py-4 font-medium">Condition</th>
-                                    <th className="px-6 py-4 font-medium">Actions</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Patient Name</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Visit ID</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Date</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Doctor</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium">Condition</th>
+                                    <th className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -131,21 +125,21 @@ const Dashboard = () => {
                                     { name: 'Anna Doe', id: '#PAT-003', date: 'Oct 22, 2024', doctor: 'Dr. Smith', tag: 'Dental', tagColor: 'bg-teal-100 text-teal-700' },
                                 ].map((row, i) => (
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
                                             <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
                                                 {row.name.charAt(0)}
                                             </div>
                                             {row.name}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{row.id}</td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{row.date}</td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{row.doctor}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{row.id}</td>
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{row.date}</td>
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{row.doctor}</td>
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4">
                                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${row.tagColor}`}>
                                                 {row.tag}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 py-3 lg:px-6 lg:py-4 text-right">
                                             <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                                                 <MoreHorizontalIcon />
                                             </button>

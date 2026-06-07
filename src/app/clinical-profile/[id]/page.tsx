@@ -44,7 +44,7 @@ export default async function ClinicalProfileDetailPage({ params }: { params: Pr
         <ClinicalProfileClientWrapper>
         <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
             <Sidebar />
-            <div className="flex-1 transition-all duration-300 md:ml-64">
+            <div className="flex-1 transition-all duration-300 md:ml-20 lg:ml-64">
                 <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors p-8">
                     {/* Navigation */}
                     <Link
