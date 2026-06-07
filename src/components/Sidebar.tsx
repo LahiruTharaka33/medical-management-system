@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 // Icons
 const HomeIcon = () => (
@@ -28,8 +29,21 @@ const MedicineIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" /><path d="m8.5 8.5 7 7" /></svg>
 );
 
+const getInitials = (name: string): string => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+};
+
 const Sidebar = () => {
     const pathname = usePathname();
+    const { data: session } = useSession();
+
+    const userName = session?.user?.name || session?.user?.email || 'User';
+    const displayName = `Dr. ${userName}`;
+    const initials = getInitials(userName);
 
     const navItems = [
         { name: 'Dashboard', href: '/', icon: <HomeIcon /> },
@@ -81,11 +95,11 @@ const Sidebar = () => {
             <div className="border-t border-white/10 p-4">
                 <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors cursor-pointer">
                     <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-xs font-bold ring-2 ring-teal-800">
-                        DS
+                        {initials}
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold">Dr. Smith</span>
-                        <span className="text-xs text-teal-300/80">Admin</span>
+                        <span className="text-sm font-semibold">{displayName}</span>
+                        <span className="text-xs text-teal-300/80">User</span>
                     </div>
                 </div>
             </div>
@@ -94,3 +108,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Icons
 const ActivityIcon = () => (
@@ -56,8 +57,20 @@ const UsersIcon = () => (
   </svg>
 );
 
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
 const AdminSidebar = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const userName = session?.user?.name || session?.user?.email || 'Admin';
+  const initials = getInitials(userName);
 
   const navItems = [
     { name: "Access Group", icon: <LockIcon />, href: "/admin/dashboard" },
@@ -105,11 +118,11 @@ const AdminSidebar = () => {
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors cursor-pointer">
           <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-xs font-bold ring-2 ring-teal-800">
-            AU
+            {initials}
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Admin User</span>
-            <span className="text-xs text-teal-300/80">Super Admin</span>
+            <span className="text-sm font-semibold">{userName}</span>
+            <span className="text-xs text-teal-300/80">Admin</span>
           </div>
         </div>
       </div>
@@ -118,3 +131,4 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
+
