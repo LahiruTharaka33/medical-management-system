@@ -31,7 +31,7 @@ const LogOutIcon = () => (
 import { handleSignOut } from '@/actions/auth';
 
 
-const Dashboard = () => {
+const Dashboard = ({ totalPatients = 0 }: { totalPatients?: number }) => {
     return (
         <div className="flex-1 min-h-screen bg-slate-50 transition-colors dark:bg-slate-900">
             {/* Top Header */}
@@ -73,7 +73,7 @@ const Dashboard = () => {
                 {/* Stats Grid */}
                 <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {[
-                        { title: 'Total Patients', value: '1,284', change: '+12.5%', icon: <UserPlusIcon />, color: 'text-blue-600', bg: 'bg-blue-50' },
+                        { title: 'Total Patients', value: totalPatients.toLocaleString(), change: '+12.5%', icon: <UserPlusIcon />, color: 'text-blue-600', bg: 'bg-blue-50' },
                         { title: 'Appointments', value: '42', change: '+4.3%', icon: <ClockIcon />, color: 'text-violet-600', bg: 'bg-violet-50' },
                         { title: 'Operations', value: '12', change: '-2.1%', icon: <HeartPulseIcon />, color: 'text-rose-600', bg: 'bg-rose-50' },
                         { title: 'Satisfied', value: '98%', change: '+1.2%', icon: <HeartPulseIcon />, color: 'text-teal-600', bg: 'bg-teal-50' }, // Reusing heart for satisfaction

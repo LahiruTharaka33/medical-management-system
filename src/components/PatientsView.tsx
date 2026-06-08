@@ -34,18 +34,35 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
     const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showAllColumns, setShowAllColumns] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState(0);
 
     // Sync state if initialPatients updates (from server revalidation)
-    // Note: simpler to just use router.refresh() in actions but passing initialPatients is standard.
-    // We'll rely on the parent (server component) passing updated list on re-render.
     React.useEffect(() => {
         setPatients(initialPatients);
     }, [initialPatients]);
 
+    const filteredPatients = React.useMemo(() => {
+        if (!searchQuery.trim()) return patients;
+
+        const lowerQuery = searchQuery.toLowerCase().trim();
+        return patients.filter((patient) =>
+            patient.firstName.toLowerCase().includes(lowerQuery) ||
+            patient.lastName.toLowerCase().includes(lowerQuery) ||
+            patient.nic.toLowerCase().includes(lowerQuery) ||
+            (patient.address && patient.address.toLowerCase().includes(lowerQuery)) ||
+            (patient.occupation && patient.occupation.toLowerCase().includes(lowerQuery))
+        );
+    }, [patients, searchQuery]);
+
+    // Reset selected index when search changes
+    React.useEffect(() => {
+        setSelectedIndex(0);
+    }, [searchQuery]);
+
     const handleCreate = async (data: PatientData) => {
         const res = await createPatient(data);
         if (!res.success) throw new Error(res.error);
-        // Optimistic update or wait for server revalidation via parent
     };
 
     const handleUpdate = async (data: PatientData) => {
@@ -76,6 +93,30 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
         setDialogOpen(true);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (filteredPatients.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev < filteredPatients.length - 1 ? prev + 1 : prev));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const selectedPatient = filteredPatients[selectedIndex];
+            if (selectedPatient) {
+                openEditDialog(selectedPatient);
+            }
+        }
+    };
+
+    const highlightText = (text: string, query: string) => {
+        if (!query.trim()) return text;
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<mark class="bg-yellow-200 text-slate-900 rounded-sm">$1</mark>');
+    };
+
     return (
         <div className="flex-1 min-h-screen bg-slate-50 transition-colors dark:bg-slate-900">
             {/* Top Header - Reusing design from Dashboard */}
@@ -86,22 +127,27 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative hidden md:block md:w-48 lg:w-64">
-                        <SearchIcon />
-                        <input
-                            type="text"
-                            placeholder="Search patients..."
-                            className="absolute inset-0 h-full w-64 bg-transparent pl-8 text-sm outline-none placeholder:text-transparent"
-                        />
+                    <div className="relative hidden md:block md:w-56 lg:w-96">
                         <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <SearchIcon />
                             </div>
                             <input
                                 type="search"
-                                className="block w-full rounded-full border-none bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:ring-2 focus:ring-teal-500 dark:bg-slate-800 dark:text-white"
-                                placeholder="Search..."
+                                autoFocus
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                className="block w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-white shadow-sm"
+                                placeholder="Search by Name, NIC, Address..."
                             />
+                            {searchQuery && (
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span className="text-xs text-slate-400 bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+                                        {filteredPatients.length} found
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -116,7 +162,7 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                 <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-200 px-3 lg:px-6 py-4 lg:py-5 dark:border-slate-700">
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Registered Patients</h3>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowAllColumns(!showAllColumns)}
                                 className={`lg:hidden flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${showAllColumns ? 'bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:ring-teal-800' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'}`}
@@ -125,9 +171,18 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                                 <ColumnsIcon />
                                 {showAllColumns ? 'Fewer' : 'All Cols'}
                             </button>
+                            <div className="flex gap-1">
+                                <kbd className="hidden sm:inline-block rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">↓</kbd>
+                                <kbd className="hidden sm:inline-block rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">↑</kbd>
+                                <span className="text-xs text-slate-400 ml-1">to navigate</span>
+                            </div>
+                            <div className="flex gap-1 ml-3">
+                                <kbd className="hidden sm:inline-block rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">Enter</kbd>
+                                <span className="text-xs text-slate-400 ml-1">to edit</span>
+                            </div>
                             <button
                                 onClick={openCreateDialog}
-                                className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors"
+                                className="flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 transition-colors ml-3"
                             >
                                 <UserPlusIcon />
                                 <span className="hidden sm:inline">Add Patient</span>
@@ -148,43 +203,84 @@ export default function PatientsView({ initialPatients }: { initialPatients: Pat
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {patients.length === 0 ? (
+                                {filteredPatients.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
-                                            No patients registered yet.
+                                        <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                                            {searchQuery ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <span className="text-lg font-medium text-slate-900 dark:text-white">No patients found</span>
+                                                    <span className="text-slate-500">No matches for "{searchQuery}"</span>
+                                                </div>
+                                            ) : (
+                                                "No patients registered yet."
+                                            )}
                                         </td>
                                     </tr>
                                 ) : (
-                                    patients.map((patient) => (
-                                        <tr key={patient.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{patient.nic}</td>
-                                            <td className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-slate-900 dark:text-white">
-                                                {patient.firstName} {patient.lastName}
-                                            </td>
-                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{patient.age}</td>
-                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{patient.gender}</td>
-                                            <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 truncate max-w-xs ${showAllColumns ? '' : 'hidden lg:table-cell'}`} title={patient.address || ''}>{patient.address || '-'}</td>
-                                            <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>{patient.occupation || '-'}</td>
-                                            <td className="px-3 py-3 lg:px-6 lg:py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => openEditDialog(patient)}
-                                                        className="p-2 text-slate-400 hover:text-teal-600 transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <EditIcon />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => patient.id && setDeletingPatientId(patient.id)}
-                                                        className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <TrashIcon />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    filteredPatients.map((patient, index) => {
+                                        const isSelected = index === selectedIndex;
+                                        return (
+                                            <tr
+                                                key={patient.id}
+                                                onClick={() => openEditDialog(patient)}
+                                                className={`transition-colors cursor-pointer group ${isSelected
+                                                    ? 'bg-teal-50 dark:bg-teal-900/30 ring-1 ring-inset ring-teal-500/50'
+                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                                    }`}
+                                            >
+                                                <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 font-mono">
+                                                    {searchQuery ? (
+                                                        <span dangerouslySetInnerHTML={{ __html: highlightText(patient.nic, searchQuery) }} />
+                                                    ) : patient.nic}
+                                                </td>
+                                                <td className="px-3 py-3 lg:px-6 lg:py-4 font-medium text-slate-900 dark:text-white">
+                                                    {searchQuery ? (
+                                                        <span dangerouslySetInnerHTML={{ __html: highlightText(`${patient.firstName} ${patient.lastName}`, searchQuery) }} />
+                                                    ) : `${patient.firstName} ${patient.lastName}`}
+                                                </td>
+                                                <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400">{patient.age}</td>
+                                                <td className="px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 capitalize">{patient.gender}</td>
+                                                <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 truncate max-w-xs ${showAllColumns ? '' : 'hidden lg:table-cell'}`} title={patient.address || ''}>
+                                                    {patient.address ? (
+                                                        searchQuery ? (
+                                                            <span dangerouslySetInnerHTML={{ __html: highlightText(patient.address, searchQuery) }} />
+                                                        ) : patient.address
+                                                    ) : '-'}
+                                                </td>
+                                                <td className={`px-3 py-3 lg:px-6 lg:py-4 text-slate-600 dark:text-slate-400 ${showAllColumns ? '' : 'hidden lg:table-cell'}`}>
+                                                    {patient.occupation ? (
+                                                        searchQuery ? (
+                                                            <span dangerouslySetInnerHTML={{ __html: highlightText(patient.occupation, searchQuery) }} />
+                                                        ) : patient.occupation
+                                                    ) : '-'}
+                                                </td>
+                                                <td className="px-3 py-3 lg:px-6 lg:py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEditDialog(patient);
+                                                            }}
+                                                            className="p-2 text-slate-400 hover:text-teal-600 transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <EditIcon />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                patient.id && setDeletingPatientId(patient.id);
+                                                            }}
+                                                            className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <TrashIcon />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>

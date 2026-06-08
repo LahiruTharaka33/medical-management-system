@@ -58,6 +58,24 @@ export async function getPatients() {
     }
 }
 
+export async function getPatientsCount() {
+    try {
+        const user = await getCurrentUser()
+
+        if (!user.accessGroupId) {
+            return { success: true, data: 0 }
+        }
+
+        const count = await prisma.patient.count({
+            where: { accessGroupId: user.accessGroupId },
+        })
+        return { success: true, data: count }
+    } catch (error) {
+        console.error('Error fetching patients count:', error)
+        return { success: false, error: 'Failed to fetch patients count' }
+    }
+}
+
 export async function createPatient(data: PatientData) {
     try {
         const user = await getCurrentUser()
