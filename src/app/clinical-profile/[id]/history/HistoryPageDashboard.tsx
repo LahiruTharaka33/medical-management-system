@@ -175,7 +175,7 @@ export default function HistoryPageDashboard({ logs, patientId, initialSection }
                                     <th className="py-3 px-4">Date & Time</th>
                                     <th className="py-3 px-4">Field Name</th>
                                     <th className="py-3 px-4">Previous Value</th>
-                                    <th className="py-3 px-4"></th>
+                                    <th className="py-3 px-2"></th>
                                     <th className="py-3 px-4">New Value</th>
                                 </tr>
                             </thead>
